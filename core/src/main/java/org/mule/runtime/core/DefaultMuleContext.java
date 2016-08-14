@@ -13,6 +13,17 @@ import static org.mule.runtime.core.api.config.MuleProperties.OBJECT_TRANSACTION
 import static org.mule.runtime.core.api.lifecycle.LifecycleUtils.startIfNeeded;
 import static org.mule.runtime.core.api.lifecycle.LifecycleUtils.stopIfNeeded;
 
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.resource.spi.work.WorkListener;
+import javax.transaction.TransactionManager;
+import javax.xml.namespace.QName;
+
 import org.mule.runtime.config.spring.DefaultCustomizationService;
 import org.mule.runtime.core.api.CustomizationService;
 import org.mule.runtime.core.api.Injector;
@@ -81,18 +92,6 @@ import org.mule.runtime.core.util.concurrent.Latch;
 import org.mule.runtime.core.util.lock.LockFactory;
 import org.mule.runtime.core.util.queue.QueueManager;
 import org.mule.runtime.extension.api.ExtensionManager;
-
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.resource.spi.work.WorkListener;
-import javax.transaction.TransactionManager;
-import javax.xml.namespace.QName;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -283,8 +282,10 @@ public class DefaultMuleContext implements MuleContext {
 
       fireNotification(new MuleContextNotification(this, MuleContextNotification.CONTEXT_INITIALISED));
     } catch (InitialisationException e) {
+      disposeManagers();
       throw e;
     } catch (Exception e) {
+      disposeManagers();
       throw new InitialisationException(e, this);
     }
   }
@@ -357,12 +358,7 @@ public class DefaultMuleContext implements MuleContext {
 
     notificationManager.fireNotification(new MuleContextNotification(this, MuleContextNotification.CONTEXT_DISPOSED));
 
-    notificationManager.dispose();
-    workManager.dispose();
-
-    if (expressionManager != null && expressionManager instanceof Disposable) {
-      ((Disposable) expressionManager).dispose();
-    }
+    disposeManagers();
 
     if ((getStartDate() > 0) && logger.isInfoEnabled()) {
       SplashScreen shutdownScreen = buildShutdownSplash();
@@ -372,6 +368,15 @@ public class DefaultMuleContext implements MuleContext {
     // registryBroker.dispose();
 
     setExecutionClassLoader(null);
+  }
+
+  private void disposeManagers() {
+    notificationManager.dispose();
+    workManager.dispose();
+
+    if (expressionManager != null && expressionManager instanceof Disposable) {
+      ((Disposable) expressionManager).dispose();
+    }
   }
 
   /**

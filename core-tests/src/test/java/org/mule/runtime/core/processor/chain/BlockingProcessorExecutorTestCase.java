@@ -18,6 +18,17 @@ import static org.mockito.Mockito.when;
 import static org.mule.runtime.core.DefaultMuleEvent.getCurrentEvent;
 import static org.mule.runtime.core.DefaultMuleEvent.setCurrentEvent;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.RandomStringUtils;
+import org.hamcrest.Matcher;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mule.runtime.core.MessageExchangePattern;
 import org.mule.runtime.core.TransformationService;
 import org.mule.runtime.core.api.MuleEvent;
@@ -30,17 +41,6 @@ import org.mule.runtime.core.processor.BlockingProcessorExecutor;
 import org.mule.tck.SensingNullMessageProcessor;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 import org.mule.tck.size.SmallTest;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.RandomStringUtils;
-import org.hamcrest.Matcher;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 @SmallTest
 @RunWith(MockitoJUnitRunner.class)
@@ -74,10 +74,19 @@ public class BlockingProcessorExecutorTestCase extends AbstractMuleContextTestCa
     MuleMessage message = MuleMessage.builder().payload("").build();
     when(event.getId()).thenReturn(RandomStringUtils.randomNumeric(3));
     when(event.getMessage()).thenReturn(message);
-    when(executionTemplate.execute(any(MessageProcessor.class), any(MuleEvent.class)))
-        .thenAnswer(invocation -> ((MessageProcessor) invocation.getArguments()[0]).process((MuleEvent) invocation
-            .getArguments()[1]));
+    when(executionTemplate.execute(any(MessageProcessor.class), any(MuleEvent.class))).thenAnswer(invocation -> {
+          MessageProcessor messageProcessor = (MessageProcessor) invocation.getArguments()[0];
+          MuleEvent event = (MuleEvent) invocation.getArguments()[1];
+          return messageProcessor.process(event);
+        });
     muleContext.setTransformationService(new TransformationService(muleContext));
+  }
+
+  @After
+  public void after() {
+    processor1.dispose();
+    processor2.dispose();
+    processor3.dispose();
   }
 
   @Test

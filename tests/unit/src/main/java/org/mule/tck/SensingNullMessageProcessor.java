@@ -6,6 +6,10 @@
  */
 package org.mule.tck;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+
+import java.util.concurrent.ExecutorService;
+
 import org.mule.runtime.api.execution.CompletionHandler;
 import org.mule.runtime.core.DefaultMuleEvent;
 import org.mule.runtime.core.VoidMuleEvent;
@@ -13,20 +17,21 @@ import org.mule.runtime.core.api.MessagingException;
 import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.MuleMessage;
+import org.mule.runtime.core.api.lifecycle.Disposable;
 import org.mule.runtime.core.api.processor.MessageProcessor;
 import org.mule.runtime.core.api.source.MessageSource;
 import org.mule.runtime.core.processor.AbstractNonBlockingMessageProcessor;
 import org.mule.runtime.core.util.ObjectUtils;
 import org.mule.runtime.core.util.StringUtils;
 import org.mule.runtime.core.util.concurrent.Latch;
+import org.mule.runtime.core.util.concurrent.NamedThreadFactory;
 
-import java.util.concurrent.Executors;
-
-public class SensingNullMessageProcessor extends AbstractNonBlockingMessageProcessor implements MessageProcessor {
+public class SensingNullMessageProcessor extends AbstractNonBlockingMessageProcessor implements MessageProcessor, Disposable {
 
   public MuleEvent event;
   public Latch latch = new Latch();
   public Thread thread;
+  private ExecutorService executor = newSingleThreadExecutor(new NamedThreadFactory(SensingNullMessageProcessor.class.getName()));
 
   protected InternalMessageSource source = new InternalMessageSource();
   private long waitTime = 0;
@@ -43,7 +48,7 @@ public class SensingNullMessageProcessor extends AbstractNonBlockingMessageProce
 
   @Override
   protected void processNonBlocking(final MuleEvent event, CompletionHandler completionHandler) throws MuleException {
-    Executors.newSingleThreadExecutor().execute(() -> {
+    executor.execute(() -> {
       try {
         sense(event);
         MuleEvent eventToProcess = event;
@@ -99,6 +104,11 @@ public class SensingNullMessageProcessor extends AbstractNonBlockingMessageProce
         throw new RuntimeException(e);
       }
     }
+  }
+
+  @Override
+  public void dispose() {
+    executor.shutdown();
   }
 
   public void clear() {
