@@ -185,7 +185,7 @@
         <javaMailVersion>1.4.3</javaMailVersion>
         <javaXmlBindVersion>2.1.9</javaXmlBindVersion>
         <javaXmlWsVersion>2.2.1</javaXmlWsVersion>
-        <jaxenVersion>1.1.1</jaxenVersion>
+        <jaxenVersion>1.1.6</jaxenVersion>
         <jbossTsVersion>4.15.0.Final</jbossTsVersion>
         <jbpmVersion>4.4</jbpmVersion>
         <jcrVersion>1.0</jcrVersion>
