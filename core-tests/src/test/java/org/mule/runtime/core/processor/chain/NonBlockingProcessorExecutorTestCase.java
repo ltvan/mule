@@ -17,6 +17,13 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.mule.runtime.core.MessageExchangePattern;
 import org.mule.runtime.core.NonBlockingVoidMuleEvent;
 import org.mule.runtime.core.VoidMuleEvent;
@@ -33,19 +40,10 @@ import org.mule.runtime.core.processor.NonBlockingProcessorExecutor;
 import org.mule.runtime.core.processor.strategy.NonBlockingProcessingStrategy;
 import org.mule.tck.SensingNullReplyToHandler;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
-
 @RunWith(MockitoJUnitRunner.class)
 public class NonBlockingProcessorExecutorTestCase extends BlockingProcessorExecutorTestCase {
 
-  private static final int LATCH_TIMEOUT = 50;
-  private static final String TEST_MESSAGE = "abc";
+  private static final int LATCH_TIMEOUT = 500;
 
   private SensingNullReplyToHandler nullReplyToHandler = new SensingNullReplyToHandler();
 
