@@ -14,7 +14,11 @@ import static org.mule.runtime.core.util.PropertiesUtils.loadProperties;
 import org.mule.functional.api.classloading.isolation.MavenMultiModuleArtifactMapping;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Mule default implementation for getting modules based on artifactIds.
@@ -22,6 +26,8 @@ import java.util.Properties;
  * @since 4.0
  */
 public class DefaultMavenMultiModuleArtifactMapping implements MavenMultiModuleArtifactMapping {
+
+  protected transient Logger logger = LoggerFactory.getLogger(getClass());
 
   public static final String MAVEN_MODULE_MAPPING_PROPERTIES = "maven-module-mapping.properties";
   private Properties mappings;
@@ -35,7 +41,9 @@ public class DefaultMavenMultiModuleArtifactMapping implements MavenMultiModuleA
   public DefaultMavenMultiModuleArtifactMapping() {
     try {
       // TODO: MULE-10086 - Add support for defining multiple mappings for artifactIds-folder on ArtifactClassLoaderRunner
-      this.mappings = loadProperties(currentThread().getContextClassLoader().getResource(MAVEN_MODULE_MAPPING_PROPERTIES));
+      final URL mappingsResource = currentThread().getContextClassLoader().getResource(MAVEN_MODULE_MAPPING_PROPERTIES);
+      logger.info("Loading maven module mappings from " + mappingsResource.toString());
+      this.mappings = loadProperties(mappingsResource);
     } catch (IOException e) {
       throw new RuntimeException("Error while loading '" + MAVEN_MODULE_MAPPING_PROPERTIES + "' properties");
     }
@@ -48,6 +56,7 @@ public class DefaultMavenMultiModuleArtifactMapping implements MavenMultiModuleA
   public String getFolderName(String artifactId) throws IllegalArgumentException {
     String folder = mappings.getProperty(artifactId);
     if (isEmpty(folder)) {
+      logger.error("Contents of maven module mappings are: " + mappings.toString());
       throw new IllegalArgumentException("No folder mapped in multi-module for artifactId: " + artifactId);
     }
     return folder;
