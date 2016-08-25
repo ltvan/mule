@@ -23,11 +23,9 @@ import org.mule.runtime.core.api.MuleSession;
 import org.mule.runtime.core.api.connector.ReplyToHandler;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.context.notification.FlowCallStack;
-import org.mule.runtime.core.api.context.notification.ProcessorsTrace;
 import org.mule.runtime.core.api.security.SecurityContext;
 import org.mule.runtime.core.api.transformer.TransformerException;
 import org.mule.runtime.core.message.Correlation;
-import org.mule.runtime.core.message.ErrorBuilder;
 import org.mule.runtime.core.message.DefaultExceptionPayload;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 
@@ -146,6 +144,7 @@ public class RequestContextTestCase extends AbstractMuleTestCase {
       return null;
     }
 
+    @Override
     public byte[] getMessageAsBytes(MuleContext muleContext) throws MuleException {
       return new byte[0];
     }
@@ -267,11 +266,6 @@ public class RequestContextTestCase extends AbstractMuleTestCase {
 
     @Override
     public FlowCallStack getFlowCallStack() {
-      return null;
-    }
-
-    @Override
-    public ProcessorsTrace getProcessorsTrace() {
       return null;
     }
 
