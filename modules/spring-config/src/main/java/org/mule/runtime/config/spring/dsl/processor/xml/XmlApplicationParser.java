@@ -66,7 +66,8 @@ public class XmlApplicationParser {
     }
     for (XmlNamespaceInfoProvider namespaceInfoProvider : namespaceInfoProviders) {
       Optional<XmlNamespaceInfo> matchingXmlNamespaceInfo = namespaceInfoProvider.getXmlNamespacesInfo().stream()
-          .filter(xmlNamespaceInfo -> namespaceUri.startsWith(xmlNamespaceInfo.getNamespaceUriPrefix())).findFirst();
+          //TODO WIP-OPERATIONS talk to PLG, if not changed it breaks for some modules names
+          .filter(xmlNamespaceInfo -> namespaceUri.equals(xmlNamespaceInfo.getNamespaceUriPrefix())).findFirst();
       if (matchingXmlNamespaceInfo.isPresent()) {
         return matchingXmlNamespaceInfo.get().getNamespace();
       }

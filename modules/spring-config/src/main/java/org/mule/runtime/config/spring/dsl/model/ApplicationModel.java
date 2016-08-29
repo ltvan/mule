@@ -14,6 +14,8 @@ import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.mule.runtime.config.spring.dsl.model.ModuleModel.OPERATION_PARAM_PREFIX;
+import static org.mule.runtime.config.spring.dsl.model.ModuleModel.OPERATION_PROPERTY_PREFIX;
 import static org.mule.runtime.config.spring.dsl.processor.xml.CoreXmlNamespaceInfoProvider.CORE_NAMESPACE_NAME;
 import static org.mule.runtime.config.spring.dsl.processor.xml.XmlCustomAttributeHandler.from;
 import static org.mule.runtime.config.spring.dsl.processor.xml.XmlCustomAttributeHandler.to;
@@ -23,17 +25,30 @@ import static org.mule.runtime.extension.api.util.NameUtils.pluralize;
 import org.mule.runtime.config.spring.dsl.api.ComponentBuildingDefinition;
 import org.mule.runtime.config.spring.dsl.api.config.ArtifactConfiguration;
 import org.mule.runtime.config.spring.dsl.api.config.ComponentConfiguration;
+import org.mule.runtime.config.spring.ModuleDelegatingEntityResolver;
+import org.mule.runtime.config.spring.MuleArtifactContext;
+import org.mule.runtime.config.spring.MuleDocumentLoader;
+import org.mule.runtime.config.spring.dsl.model.extension.ModuleExtension;
+import org.mule.runtime.config.spring.dsl.model.extension.OperationExtension;
+import org.mule.runtime.config.spring.dsl.model.extension.ParameterExtension;
 import org.mule.runtime.config.spring.dsl.processor.ArtifactConfig;
 import org.mule.runtime.config.spring.dsl.processor.ConfigFile;
 import org.mule.runtime.config.spring.dsl.processor.ConfigLine;
 import org.mule.runtime.config.spring.dsl.processor.SimpleConfigAttribute;
+import org.mule.runtime.config.spring.dsl.processor.xml.XmlApplicationParser;
+import org.mule.runtime.config.spring.dsl.processor.xml.XmlCustomAttributeHandler;
+import org.mule.runtime.config.spring.extension.loader.ModuleXmlLoader;
+import org.mule.runtime.config.spring.extension.xml.ModuleSchemaGenerator;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.core.api.config.ConfigurationException;
+import org.mule.runtime.core.registry.SpiServiceRegistry;
+import org.mule.runtime.core.util.StringUtils;
 
 import com.google.common.collect.ImmutableSet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -43,11 +58,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import javax.xml.XMLConstants;
 
 import org.springframework.util.PropertyPlaceholderHelper;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
 /**
  * An {@code ApplicationModel} holds a representation of all the artifact configuration using an abstract model to represent any
@@ -232,12 +253,22 @@ public class ApplicationModel {
           .add(new ComponentIdentifier.Builder().withNamespace(PARSER_TEST_NAMESPACE).withName("child").build())
           .add(new ComponentIdentifier.Builder().withNamespace(PARSER_TEST_NAMESPACE).withName("kid").build())
           .add(new ComponentIdentifier.Builder().withNamespace(DATA_WEAVE).withName("reader-property").build())
+          //TODO WIP-OPERATIONS check if needed
+          .add(new ComponentIdentifier.Builder().withNamespace(MULE_ROOT_ELEMENT).withName("operation").build())
           .build();
 
   private List<ComponentModel> muleComponentModels = new LinkedList<>();
   private List<ComponentModel> springComponentModels = new LinkedList<>();
   private PropertyPlaceholderHelper propertyPlaceholderHelper = new PropertyPlaceholderHelper("${", "}");
   private Properties applicationProperties;
+  private Map<String, ModuleExtension> modules;
+
+  /**
+   * literal that represents the name of the global element for any given module. If the module's name is math, then
+   * the value of this field will name the global element as <math:config ../>
+   */
+  public static final String MODULE_CONFIG_GLOBAL_ELEMENT_NAME = "config";
+  public static final String MODULE_OPERATION_CONFIG_REF = "config-ref";
 
   /**
    * Creates an {code ApplicationModel} from a {@link ArtifactConfig}.
@@ -271,7 +302,307 @@ public class ApplicationModel {
     convertConfigFileToComponentModel(artifactConfig);
     convertArtifactConfigurationToComponentModel(artifactConfiguration);
     validateModel(componentBuildingDefinitionRegistry);
+
+    modules = getModulesUsedInApp();
+    createOperationRefEffectiveModel();
+    createConfigRefEffectiveModel();
   }
+  ///**
+  // * Creates an {code ApplicationModel} from a {@link ArtifactConfig}.
+  // * <p/>
+  // * A set of validations are applied that may make creation fail.
+  // *
+  // * @param artifactConfig the mule artifact configuration content.
+  // * @throws Exception when the application configuration has semantic errors.
+  // */
+  //public ApplicationModel(ArtifactConfig artifactConfig) throws Exception
+  //{
+  //    configurePropertyPlaceholderResolver(artifactConfig);
+  //    convertConfigFileToComponentModel(artifactConfig);
+  //    validateModel();
+  //
+  //    modules = getModulesUsedInApp();
+  //    createOperationRefEffectiveModel();
+  //    createConfigRefEffectiveModel();
+  //}
+
+  private Map<String, ModuleExtension> getModulesUsedInApp() {
+    Map<String, ModuleExtension> modulesExtension = new ConcurrentHashMap<>();
+    muleComponentModels.stream()
+        .forEach(muleRootComponentModel -> modulesExtension.putAll(getModulesUsedIn(muleRootComponentModel)));
+    return modulesExtension;
+  }
+
+  private Map<String, ModuleExtension> getModulesUsedIn(ComponentModel muleRootComponentModel) {
+    ModuleXmlLoader moduleXmlLoader = new ModuleXmlLoader();
+    Map<String, String> schemaLocations = getSchemaLocations(muleRootComponentModel);
+    Map<String, ModuleExtension> modulesExtension = new HashMap<>();
+
+    schemaLocations.forEach((namespace, location) -> {
+      Optional<URL> url = moduleXmlLoader.loadModule(location);
+      if (url.isPresent()) {
+        ModuleExtension moduleExtension = getModuleFor(url.get());
+        modulesExtension.put(moduleExtension.getName(), moduleExtension);
+      }
+    });
+
+    return modulesExtension;
+  }
+
+  private ModuleExtension getModuleFor(URL url) {
+    Document moduleDocument = getXmlDocument(url);
+    XmlApplicationParser xmlApplicationParser = new XmlApplicationParser(new SpiServiceRegistry());
+    Optional<ConfigLine> parseModule = xmlApplicationParser.parse(moduleDocument.getDocumentElement());
+    if (!parseModule.isPresent()) {
+      throw new IllegalArgumentException(String.format("There was an issue while parsing the module for [%s]", url.getFile()));
+    }
+    List<ComponentModel> componentModels = extractComponentDefinitionModel(asList(parseModule.get()), url.getFile());
+    ModuleExtension moduleExtension = new ModuleModel().loadModule(componentModels.get(0));
+    return moduleExtension;
+  }
+
+  /**
+   * TODO WIP-OPERATIONS copied from MuleArtifactContext#getXmlDocument
+   */
+  private static final int VALIDATION_XSD = 3;
+
+  private Document getXmlDocument(URL url) {
+    try {
+      String filename = url.getFile();
+      InputStream byteStream = url.openStream();
+      MuleArtifactContext.MuleLoggerErrorHandler errorHandler = new MuleArtifactContext.MuleLoggerErrorHandler(filename);
+      Document document = new MuleDocumentLoader()
+          .loadDocument(new InputSource(byteStream), new ModuleDelegatingEntityResolver(), errorHandler, VALIDATION_XSD, true);
+      errorHandler.displayErrors();
+      return document;
+    } catch (Exception e) {
+      throw new MuleRuntimeException(e);
+    }
+  }
+
+  /**
+   * returns a map with the namespaces and locations from the xsi:schemaLocation attribute.
+   * If it can't success to do it so, it will throw an exception.
+   *
+   * @param muleRootComponentModel
+   * @return map where the key represents the namespace and the value is the location of the xsd
+   */
+  private Map<String, String> getSchemaLocations(ComponentModel muleRootComponentModel) {
+    String xsiPrefix = null;
+    //finds the XSI prefix
+    for (Map.Entry<String, String> entry : muleRootComponentModel.getParameters().entrySet()) {
+      if (XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI.equals(entry.getValue())) {
+        xsiPrefix = StringUtils.removeStart(entry.getKey(), XMLConstants.XMLNS_ATTRIBUTE.concat(":"));
+        break;
+      }
+    }
+    if (StringUtils.isBlank(xsiPrefix)) {
+      throw new IllegalArgumentException(String
+          .format("The file [%s] needs to define the XSI namespace defined (e.g.: xmlns:xsi=\"%s\")",
+                  muleRootComponentModel.getCustomAttributes().get(XmlCustomAttributeHandler.CONFIG_FILE_NAME),
+                  XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI));
+    }
+
+    String schemaLocationKey = xsiPrefix.concat(":schemaLocation");
+    String schemaLocationValue = muleRootComponentModel.getParameters().getOrDefault(schemaLocationKey, "");
+    String[] splittedSchemaLocation = schemaLocationValue.split("\\s+");
+
+    if (splittedSchemaLocation.length == 0 || ((splittedSchemaLocation.length & 1) != 0)) {
+      throw new IllegalArgumentException(String
+          .format("The file [%s] schemaLocation it's either missing, empty, or has non even values (it has to be a namespace+location per entry)",
+                  muleRootComponentModel.getCustomAttributes().get(XmlCustomAttributeHandler.CONFIG_FILE_NAME)));
+    }
+
+    Map<String, String> schemaLocations = new HashMap<>();
+    for (int i = 0; i < splittedSchemaLocation.length; i = i + 2) {
+      schemaLocations.put(splittedSchemaLocation[i], splittedSchemaLocation[i + 1]);
+    }
+    return schemaLocations;
+  }
+
+  /**
+   * TODO WIP-OPERATIONS begin of replacement logic
+   */
+  private void createOperationRefEffectiveModel() {
+    HashMap<Integer, ComponentModel> componentModelsToReplaceByIndex = new HashMap<>();
+
+    executeOnEveryMuleComponentTree(componentModel -> {
+      for (int i = 0; i < componentModel.getInnerComponents().size(); i++) {
+        ComponentModel operationRefModel = componentModel.getInnerComponents().get(i);
+
+        ComponentIdentifier identifier = operationRefModel.getIdentifier();
+        ModuleExtension moduleExtension = modules.get(identifier.getNamespace());
+        if (moduleExtension != null
+            && !identifier.getName().equals(MODULE_CONFIG_GLOBAL_ELEMENT_NAME)) //TODO WIP-OPERATIONS ideally only elements of flow, flow-ref, batch should be processed.. refactor/fix this
+        {
+
+          OperationExtension operationExtension = searchOperation(moduleExtension, identifier.getName());
+          ComponentModel replacementModel = createOperationInstance(operationRefModel, moduleExtension, operationExtension);
+          componentModelsToReplaceByIndex.put(i, replacementModel);
+        }
+      }
+      for (Map.Entry<Integer, ComponentModel> entry : componentModelsToReplaceByIndex.entrySet()) {
+        entry.getValue().setParent(componentModel);
+        componentModel.getInnerComponents().add(entry.getKey(), entry.getValue());
+        componentModel.getInnerComponents().remove(entry.getKey() + 1);
+      }
+      componentModelsToReplaceByIndex.clear();
+    });
+  }
+
+  private void createConfigRefEffectiveModel() {
+    this.muleComponentModels.stream()
+        .forEach(componentModel -> {
+          HashMap<Integer, List<ComponentModel>> componentModelsToReplaceByIndex = new HashMap<>();
+
+          for (int i = 0; i < componentModel.getInnerComponents().size(); i++) {
+            ComponentModel configRefModel = componentModel.getInnerComponents().get(i);
+            ComponentIdentifier identifier = configRefModel.getIdentifier();
+            ModuleExtension moduleExtension = modules.get(identifier.getNamespace());
+            if (moduleExtension != null) {
+              List<ComponentModel> replacementGlobalElements = createGlobalElementsInstance(configRefModel, moduleExtension);
+              componentModelsToReplaceByIndex.put(i, replacementGlobalElements);
+            }
+          }
+          for (Map.Entry<Integer, List<ComponentModel>> entry : componentModelsToReplaceByIndex.entrySet()) {
+            componentModel.getInnerComponents().addAll(entry.getKey(), entry.getValue());
+            componentModel.getInnerComponents().remove(entry.getKey() + entry.getValue().size());
+          }
+          //componentModelsToReplaceByIndex.clear();
+        });
+  }
+
+  private List<ComponentModel> createGlobalElementsInstance(ComponentModel configRefModel, ModuleExtension moduleExtension) {
+    List<ComponentModel> globalElementsModel = new ArrayList<>();
+    Map<String, String> parametersToReplace =
+        extractParametersMapFrom(configRefModel, OPERATION_PROPERTY_PREFIX, moduleExtension.getProperties());
+
+    globalElementsModel.addAll(moduleExtension.getGlobalElements().stream()
+        .map(globalElementModel -> copyComponentModel(parametersToReplace, globalElementModel, configRefModel.getNameAttribute()))
+        .collect(Collectors.toList()));
+
+    ComponentModel muleRootElement = configRefModel.getParent();
+    globalElementsModel.stream().forEach(componentModel -> {
+      componentModel.setRoot(true);
+      componentModel.setParameter(NAME_ATTRIBUTE, componentModel.getNameAttribute() + "-" + configRefModel.getNameAttribute());
+      componentModel.setParent(muleRootElement);
+    });
+
+    return globalElementsModel;
+  }
+
+  private ComponentModel createOperationInstance(ComponentModel operationRefModel, ModuleExtension moduleExtension,
+                                                 OperationExtension operationExtension) {
+    Map<String, String> parametersToReplace = extractAllParameters(operationRefModel, moduleExtension, operationExtension);
+
+    List<ComponentModel> bodyProcessors = operationExtension.getMessageProcessorsComponentModels();
+
+    String configRefName = operationRefModel.getParameters().get(MODULE_OPERATION_CONFIG_REF);
+
+    ComponentModel.Builder processorChainBuilder = new ComponentModel.Builder();
+    processorChainBuilder
+        .setIdentifier(new ComponentIdentifier.Builder().withNamespace("mule").withName("processor-chain").build());
+    for (ComponentModel bodyProcessor : bodyProcessors) {
+      processorChainBuilder.addChildComponentModel(copyComponentModel(parametersToReplace, bodyProcessor, configRefName));
+    }
+    for (Map.Entry<String, Object> customAttributeEntry : operationRefModel.getCustomAttributes().entrySet()) {
+      processorChainBuilder.addCustomAttribute(customAttributeEntry.getKey(), customAttributeEntry.getValue());
+    }
+    ComponentModel processorChainModel = processorChainBuilder.build();
+    for (ComponentModel processoChainModelChild : processorChainModel.getInnerComponents()) {
+      processoChainModelChild.setParent(processorChainModel);
+    }
+    return processorChainModel;
+  }
+
+  private Map<String, String> extractAllParameters(ComponentModel operationRefModel, ModuleExtension moduleExtension,
+                                                   OperationExtension operationExtension) {
+    //extract the <operation> + <operation-ref> parameters
+    Map<String, String> valuesMap =
+        extractParametersMapFrom(operationRefModel, OPERATION_PARAM_PREFIX, operationExtension.getParameters());
+
+    //extract the <properties>
+    String configParameter = operationRefModel.getParameters().get(ModuleSchemaGenerator.CONFIG_REF_GLOBAL_ELEMENT_NAME);
+    if (configParameter != null) {
+      ComponentModel configRefComponentModel = this.muleComponentModels.get(0).getInnerComponents().stream()
+          .filter(componentModel -> componentModel.getIdentifier().getNamespace().equals(moduleExtension.getName())
+              && componentModel.getIdentifier().getName().equals(MODULE_CONFIG_GLOBAL_ELEMENT_NAME))
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException(String
+              .format("There's no <%s:config> named [%s] in the current mule app", moduleExtension.getName(), configParameter)));
+      valuesMap
+          .putAll(extractParametersMapFrom(configRefComponentModel, OPERATION_PROPERTY_PREFIX, moduleExtension.getProperties()));
+    }
+    return valuesMap;
+  }
+
+  private Map<String, String> extractParametersMapFrom(ComponentModel componentModel, String prefix,
+                                                       List<ParameterExtension> parameters) {
+    Map<String, String> valuesMap = new HashMap<>();
+    for (ParameterExtension parameterExtension : parameters) {
+      String paramName = parameterExtension.getParamName();
+      String value = null;
+      if (componentModel.getParameters().containsKey(paramName)) {
+        value = componentModel.getParameters().get(paramName);
+      } else if (parameterExtension.getDefaultValue().isPresent()) {
+        value = parameterExtension.getDefaultValue().get();
+      }
+      valuesMap.put(prefix + paramName, value);
+    }
+    return valuesMap;
+  }
+
+  private ComponentModel copyComponentModel(Map<String, String> parameterValues, ComponentModel modelToCopy,
+                                            String configRefName) {
+    ComponentModel.Builder operationReplacementModel = new ComponentModel.Builder();
+    operationReplacementModel
+        .setIdentifier(modelToCopy.getIdentifier())
+        .setTextContent(modelToCopy.getTextContent());
+    for (Map.Entry<String, Object> entry : modelToCopy.getCustomAttributes().entrySet()) {
+      operationReplacementModel.addCustomAttribute(entry.getKey(), entry.getValue());
+    }
+    for (Map.Entry<String, String> entry : modelToCopy.getParameters().entrySet()) {
+      String value = entry.getKey().endsWith(REFERENCE_ATTRIBUTE)
+          ? entry.getValue().concat("-").concat(configRefName) //TODO WIP-OPERATIONS check AbstractAttributeDefinitionVisitor
+          : resolveOperationParameterValue(parameterValues, entry.getValue());
+      operationReplacementModel.addParameter(entry.getKey(), value, false);
+    }
+    for (ComponentModel operationChildModel : modelToCopy.getInnerComponents()) {
+      operationReplacementModel.addChildComponentModel(copyComponentModel(parameterValues, operationChildModel, configRefName));
+    }
+    ComponentModel componentModel = operationReplacementModel.build();
+    for (ComponentModel child : componentModel.getInnerComponents()) {
+      child.setParent(componentModel);
+    }
+    return componentModel;
+  }
+
+  private String resolveOperationParameterValue(Map<String, String> parameterValues, String parameterValue) {
+    if (!parameterValue.startsWith("#[")) {
+      return parameterValue;
+    } else {
+      String resolvedValue = parameterValue;
+      for (Map.Entry<String, String> entry : parameterValues.entrySet()) {
+        //TODO WIP-OPERATIONS fix this. It will replace `param.value.accessor.param.value` for `val.accessor.val` when it should be `val.accessor.param.value`
+        resolvedValue = resolvedValue.replaceAll(entry.getKey(), entry.getValue());
+      }
+      return resolvedValue;
+    }
+  }
+
+  //TODO WIP-OPERATIONS this method doesn't have sense is we rely on XSD for validations, talk to PLG
+  private OperationExtension searchOperation(ModuleExtension moduleExtension, String operationName) {
+    OperationExtension operationExtension = moduleExtension.getOperations().get(operationName);
+    if (operationExtension == null) {
+      throw new IllegalStateException(String.format("There's no <operation> under the name [%s] in the <module> [%s]",
+                                                    operationName, moduleExtension.getName()));
+    }
+    return operationExtension;
+  }
+
+  /**
+   * TODO WIP-OPERATIONS end of replacement logic
+   */
 
   private void convertArtifactConfigurationToComponentModel(ArtifactConfiguration artifactConfiguration) {
     if (artifactConfiguration != null) {
