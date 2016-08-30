@@ -76,7 +76,6 @@ import org.springframework.beans.factory.support.CglibSubclassingInstantiationSt
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.DelegatingEntityResolver;
 import org.springframework.context.annotation.ConfigurationClassPostProcessor;
 import org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver;
 import org.springframework.context.support.AbstractXmlApplicationContext;
@@ -204,7 +203,7 @@ public class MuleArtifactContext extends AbstractXmlApplicationContext {
       MuleLoggerErrorHandler errorHandler = new MuleLoggerErrorHandler(artifactResource.getFilename());
       Document document = new MuleDocumentLoader()
           .loadDocument(new InputSource(artifactResource.getInputStream()),
-                        new DelegatingEntityResolver(Thread.currentThread().getContextClassLoader()), errorHandler,
+                        new ModuleDelegatingEntityResolver(), errorHandler,
                         VALIDATION_XSD, true);
       errorHandler.displayErrors();
       return document;
