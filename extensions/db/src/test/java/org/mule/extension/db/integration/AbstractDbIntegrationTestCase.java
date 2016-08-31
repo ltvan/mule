@@ -58,8 +58,7 @@ import org.junit.Before;
 import org.junit.runners.Parameterized;
 
 @RunnerDelegateTo(Parameterized.class)
-@ArtifactClassLoaderRunnerConfig(plugins = "org.mule.modules:mule-module-dbn",
-    exportPluginClasses = {DbConnectionProvider.class, DerbyTestStoredProcedure.class})
+@ArtifactClassLoaderRunnerConfig(exportPluginClasses = {DbConnectionProvider.class, DerbyTestStoredProcedure.class})
 public abstract class AbstractDbIntegrationTestCase extends MuleArtifactFunctionalTestCase {
 
   private final String dataSourceConfigResource;
