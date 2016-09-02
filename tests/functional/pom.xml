@@ -12,7 +12,8 @@
     <description>Mule functional test framework (TCK)</description>
 
     <properties>
-        <aetherVersion>1.1.0</aetherVersion>
+        <!-- v1.1.0 has an issue with Optional dependencies, when resolving the graph it overrides the optionality of a transitive dependency with the one define in the dependency management (which is mostly in all the cases "false") -->
+        <aetherVersion>1.0.2.v20150114</aetherVersion>
         <formatterConfigPath>../../formatter.xml</formatterConfigPath>
     </properties>
 
