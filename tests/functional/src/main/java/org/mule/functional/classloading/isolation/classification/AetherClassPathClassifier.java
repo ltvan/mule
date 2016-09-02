@@ -34,6 +34,7 @@ import org.mule.runtime.module.extension.internal.introspection.version.StaticVe
 import org.mule.runtime.module.extension.internal.manager.DefaultExtensionManager;
 import org.mule.runtime.module.extension.internal.manager.ExtensionManagerAdapter;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import java.io.File;
@@ -89,6 +90,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
   public static final String SNAPSHOT_WILCARD_FILE_FILTER = "*-SNAPSHOT*.*";
   public static final String MULE_EXTENSION = "mule-extension";
   private static final String GENERATED_TEST_RESOURCES = "generated-test-resources";
+  public static final String TESTS_CLASSIFIER = "tests";
   protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   /**
@@ -465,12 +467,11 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     if (logger.isDebugEnabled()) {
       logger.debug("Building application classification");
     }
-    List<File> applicationFiles = newArrayList(context.getRootArtifactTestClassesFolder());
 
-    if (logger.isDebugEnabled()) {
-      logger.debug("Setting filter for dependency graph to include: '{}'", context.getTestInclusions());
-    }
     DependencyFilter dependencyFilter = new PatternInclusionsDependencyFilter(context.getTestInclusions());
+    if (logger.isDebugEnabled()) {
+      logger.debug("Using filter for dependency graph to include: '{}'", context.getTestInclusions());
+    }
 
     boolean isRootArtifactPlugin = !pluginUrlClassifications.isEmpty()
         && pluginUrlClassifications.stream().filter(p -> {
@@ -479,6 +480,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
               && plugin.getArtifactId().equals(rootArtifact.getArtifactId());
         }).findFirst().isPresent();
 
+    List<File> applicationFiles = Lists.newArrayList();
     List<String> exclusionsPatterns = newArrayList();
 
     if (!isRootArtifactPlugin && context.getRootArtifactClassesFolder().exists()) {
@@ -523,11 +525,15 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
       logger.debug("Resolving dependency graph for '{}' scope direct dependencies: {}", TEST, directDependencies);
     }
     applicationFiles
-        .addAll(localRepositoryService.resolveDependencies(new Dependency(rootArtifact, TEST),
-                                                           directDependencies,
-                                                           Collections.<Dependency>emptyList(),
-                                                           orFilter(dependencyFilter,
-                                                                    new PatternExclusionsDependencyFilter(exclusionsPatterns))));
+        .addAll(localRepositoryService
+            .resolveDependencies(new Dependency(new DefaultArtifact(rootArtifact.getGroupId(), rootArtifact.getArtifactId(),
+                                                                    TESTS_CLASSIFIER, rootArtifact.getExtension(),
+                                                                    rootArtifact.getVersion()),
+                                                TEST),
+                                 directDependencies,
+                                 Collections.<Dependency>emptyList(),
+                                 orFilter(dependencyFilter,
+                                          new PatternExclusionsDependencyFilter(exclusionsPatterns))));
 
     return toUrl(applicationFiles);
   }
