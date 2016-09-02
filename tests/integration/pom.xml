@@ -86,12 +86,14 @@
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-validation</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-file</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Test jars -->
@@ -229,7 +231,8 @@
         <dependency>
             <groupId>commons-httpclient</groupId>
             <artifactId>commons-httpclient</artifactId>
-            <scope>test</scope>
+            <!-- CXF already exposes this classes -->
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>

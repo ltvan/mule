@@ -188,19 +188,6 @@ public class LocalRepositoryService {
   }
 
   /**
-   * Resolves transitive dependencies for the dependency as root node using the filter.
-   *
-   * @param root {@link Dependency} node from to collect its dependencies
-   * @param dependencyFilter {@link DependencyFilter} to include/exclude dependency nodes during collection and resolve operation.
-   *        May be {@code null} to no filter
-   * @return a {@link List} of {@link File}s for each dependency resolved
-   */
-  public List<File> resolveDependencies(Dependency root, DependencyFilter dependencyFilter) {
-    checkNotNull(root, "root cannot be null");
-    return resolveDependencies(root, Collections.<Dependency>emptyList(), Collections.<Dependency>emptyList(), dependencyFilter);
-  }
-
-  /**
    * Resolves and filters transitive dependencies for the root and direct dependencies.
    * <p/>
    * If both a root dependency and direct dependencies are given, the direct dependencies will be merged with the direct

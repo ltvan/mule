@@ -292,10 +292,14 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
                                                                LocalRepositoryService localRepositoryService,
                                                                File baseResourcesFolder,
                                                                ExtensionsTestInfrastructureDiscoverer extensionsInfrastructure) {
+    List<Dependency> managedDependencies = localRepositoryService.readArtifactDescriptor(pluginArtifact).getManagedDependencies();
+
     List<URL> urls = toUrl(localRepositoryService
         .resolveDependencies(
                              new Dependency(pluginArtifact,
                                             COMPILE),
+                             Collections.<Dependency>emptyList(),
+                             managedDependencies,
                              orFilter(classpathFilter(COMPILE),
                                       new PatternExclusionsDependencyFilter(context.getExcludedArtifacts()))));
 
@@ -414,9 +418,9 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
       Optional<Dependency> pluginDependencyOp = directDependencies.isEmpty() ? Optional.<Dependency>empty()
           : directDependencies.stream().filter(dependency -> dependency.getArtifact().getGroupId().equals(pluginGroupId)
               && dependency.getArtifact().getArtifactId().equals(pluginArtifactId)).findFirst();
-      if (!pluginDependencyOp.isPresent() || !pluginDependencyOp.get().getScope().endsWith(PROVIDED)) {
+      if (!pluginDependencyOp.isPresent() || !pluginDependencyOp.get().getScope().equals(PROVIDED)) {
         throw new IllegalStateException("Plugin '" + pluginCoords
-            + "' in order to be resolved has to be declared as provided direct dependency of your Maven project");
+            + " in order to be resolved has to be declared as " + PROVIDED + " dependency of your Maven project");
       }
       Dependency pluginDependency = pluginDependencyOp.get();
       pluginVersion = pluginDependency.getArtifact().getVersion();
