@@ -44,6 +44,7 @@ public class ClassPathClassifierContext {
   private final List<String> providedExclusions;
   private final List<String> excludedArtifacts = Lists.newArrayList();
   private final List<String> testExclusions;
+  private final List<String> testInclusions;
   private final Set<String> extraBootPackages;
   private final List<String> pluginCoordinates;
   private final Set<Class> exportPluginClasses;
@@ -63,6 +64,7 @@ public class ClassPathClassifierContext {
    * @param providedInclusions Maven artifacts to be excluded from the provided scope direct dependencies of rootArtifact. In
    *        format {@code <groupId>:<artifactId>:[[<extension>]:<version>]}.
    * @param testExclusions {@link List} of Maven coordinates to be excluded from application class loader.
+   * @param testInclusions {@link List} of Maven coordinates to be included in application class loader.
    * @param pluginCoordinates {@link List} of Maven coordinates in format {@code <groupId>:<artifactId>} in order to create plugin
    *        {@link org.mule.runtime.module.artifact.classloader.ArtifactClassLoader}s
    * @param exportPluginClasses {@link Set} of {@link Class} to be exported in addition to the ones already exported by the
@@ -76,6 +78,7 @@ public class ClassPathClassifierContext {
                                     final List<String> providedExclusions,
                                     final List<String> providedInclusions,
                                     final List<String> testExclusions,
+                                    final List<String> testInclusions,
                                     final List<String> pluginCoordinates,
                                     final Set<Class> exportPluginClasses)
       throws IOException {
@@ -98,6 +101,7 @@ public class ClassPathClassifierContext {
       }
     }
     this.testExclusions = testExclusions;
+    this.testInclusions = testInclusions;
     this.extraBootPackages = getExtraBootPackages(excludedProperties);
 
     this.exportPluginClasses = exportPluginClasses;
@@ -143,7 +147,7 @@ public class ClassPathClassifierContext {
 
   /**
    * @return Maven artifacts to be explicitly included from the {@code provided} scope direct dependencies of the rootArtifact. In format
-   * {@code <groupId>:<artifactId>:[[<extension>]:<version>]}.
+   * {@code <groupId>:<artifactId>:[[<classifier>]:<version>]}.
    */
   public List<String> getProvidedInclusions() {
     return this.providedInclusions;
@@ -169,6 +173,19 @@ public class ClassPathClassifierContext {
    */
   public List<String> getTestExclusions() {
     return this.testExclusions;
+  }
+
+  /**
+   * Artifacts to be included from being added to application {@link ClassLoader}.
+   *
+   * @return {@link Set} of Maven coordinates in the format:
+   *
+   *         <pre>
+   *         {@code <groupId>:<artifactId>:[[<extension>]:<version>]}.
+   *         </pre>
+   */
+  public List<String> getTestInclusions() {
+    return this.testInclusions;
   }
 
   /**

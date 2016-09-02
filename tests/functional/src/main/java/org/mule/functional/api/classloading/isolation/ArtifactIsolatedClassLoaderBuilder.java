@@ -48,6 +48,7 @@ public class ArtifactIsolatedClassLoaderBuilder {
   private File rootArtifactTestClassesFolder;
   private List<String> providedExclusions = newArrayList();
   private List<String> testExclusions = newArrayList();
+  private List<String> testInclusions = newArrayList();
   private List<String> pluginCoordinates = newArrayList();
   private Set<Class> exportPluginClasses = newHashSet();
   private List<String> providedInclusions;
@@ -158,6 +159,19 @@ public class ArtifactIsolatedClassLoaderBuilder {
   }
 
   /**
+   * Sets the {@link List} of inclusion Maven coordinates to be included from test dependencies of rootArtifact. In format
+   * {@code <groupId>:<artifactId>:[[<classifier>]:<version>]}.
+   *
+   * @param testInclusions {@link List} of inclusion Maven coordinates to be excluded from test dependencies of rootArtifact. In
+   *        format {@code <groupId>:<artifactId>:[[<classifier>]:<version>]}.
+   * @return this
+   */
+  public ArtifactIsolatedClassLoaderBuilder setTestInclusions(final List<String> testInclusions) {
+    this.testInclusions = testInclusions;
+    return this;
+  }
+
+  /**
    * Sets the {@link List} of {@link Class}es to be exported by plugins in addition to their APIs, for testing purposes only.
    *
    * @param exportPluginClasses {@link List} of {@link Class}es to be exported by plugins in addition to their APIs, for testing
@@ -190,6 +204,7 @@ public class ArtifactIsolatedClassLoaderBuilder {
                                          providedExclusions,
                                          providedInclusions,
                                          testExclusions,
+                                         testInclusions,
                                          pluginCoordinates, exportPluginClasses);
     } catch (IOException e) {
       throw new RuntimeException("Error while creating the classification context", e);

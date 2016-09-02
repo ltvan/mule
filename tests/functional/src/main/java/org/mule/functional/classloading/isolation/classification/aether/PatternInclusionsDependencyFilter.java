@@ -9,6 +9,7 @@ package org.mule.functional.classloading.isolation.classification.aether;
 
 import static java.util.Arrays.asList;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,8 +40,17 @@ public class PatternInclusionsDependencyFilter implements DependencyFilter {
    *
    * @param coords that define the inclusion patterns
    */
+  public PatternInclusionsDependencyFilter(final Collection<String> coords) {
+    this.patterns.addAll(coords);
+  }
+
+  /**
+   * Creates the filter using the Maven coordinates
+   *
+   * @param coords that define the inclusion patterns
+   */
   public PatternInclusionsDependencyFilter(final String... coords) {
-    this.patterns.addAll(asList(coords));
+    this(asList(coords));
   }
 
   /**

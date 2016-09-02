@@ -19,6 +19,8 @@ import org.mule.functional.classloading.isolation.classification.AetherClassPath
 import org.mule.functional.classloading.isolation.maven.AutoDiscoverWorkspaceLocationResolver;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 
+import com.google.common.collect.Lists;
+
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.net.URL;
@@ -122,20 +124,26 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
     List<String[]> providedExclusionsList =
         getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class,
                                             "providedExclusions");
-    builder.setProvidedExclusions(providedExclusionsList.stream()
-        .flatMap(Arrays::stream).collect(toList()));
+    builder.setProvidedExclusions(Lists.newArrayList(providedExclusionsList.stream()
+        .flatMap(Arrays::stream).collect(toSet())));
 
     List<String[]> providedInclusionsList =
         getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class,
                                             "providedInclusions");
-    builder.setProvidedInclusions(providedInclusionsList.stream()
-        .flatMap(Arrays::stream).collect(toList()));
+    builder.setProvidedInclusions(Lists.newArrayList(providedInclusionsList.stream()
+        .flatMap(Arrays::stream).collect(toSet())));
 
-    List<String[]> applicationArtifactExclusionsDependencyFilterList =
+    List<String[]> testExclusionsList =
         getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class,
                                             "testExclusions");
-    builder.setTestExclusions(applicationArtifactExclusionsDependencyFilterList.stream()
-        .flatMap(Arrays::stream).collect(toList()));
+    builder.setTestExclusions(Lists.newArrayList(testExclusionsList.stream()
+        .flatMap(Arrays::stream).collect(toSet())));
+
+    List<String[]> testInclusionsList =
+        getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class,
+                                            "testInclusions");
+    builder.setTestInclusions(Lists.newArrayList(testInclusionsList.stream()
+        .flatMap(Arrays::stream).collect(toSet())));
 
     List<Class[]> exportPluginClassesList =
         getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class, "exportPluginClasses");

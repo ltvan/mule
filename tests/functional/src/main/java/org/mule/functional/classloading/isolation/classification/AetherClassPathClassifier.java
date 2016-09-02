@@ -8,7 +8,6 @@
 package org.mule.functional.classloading.isolation.classification;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.io.File.separator;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.aether.util.artifact.ArtifactIdUtils.toId;
@@ -83,7 +82,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
  */
 public class AetherClassPathClassifier implements ClassPathClassifier {
 
-  public static final String ALL_TESTS_JAR_ARTIFACT_COORDS = "*:*:jar:tests:*";
   public static final String POM = "pom";
   public static final String POM_XML = POM + ".xml";
   public static final String MAVEN_COORDINATES_SEPARATOR = ":";
@@ -146,7 +144,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    * Container classification is being done by resolving the {@value org.eclipse.aether.util.artifact.JavaScopes#PROVIDED} direct
    * dependencies of the rootArtifact. Is uses the exclusions defined in
    * {@link ClassPathClassifierContext#getProvidedExclusions()} to filter the dependency graph plus
-   * {@value #ALL_TESTS_JAR_ARTIFACT_COORDS} and {@link ClassPathClassifierContext#getExcludedArtifacts()}.
+   * {@link ClassPathClassifierContext#getExcludedArtifacts()}.
    * <p/>
    * In order to resolve correctly the {@value org.eclipse.aether.util.artifact.JavaScopes#PROVIDED} direct dependencies it will
    * get for each one the manage dependencies and use that list to resolve the graph.
@@ -182,7 +180,6 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     }
 
     List<String> excludedFilterPattern = newArrayList(context.getProvidedExclusions());
-    excludedFilterPattern.add(ALL_TESTS_JAR_ARTIFACT_COORDS);
     excludedFilterPattern.addAll(context.getExcludedArtifacts());
     if (!pluginUrlClassifications.isEmpty()) {
       excludedFilterPattern.addAll(pluginUrlClassifications.stream()
@@ -442,9 +439,9 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    * If the rootArtifact was classified as plugin its {@value org.eclipse.aether.util.artifact.JavaScopes#COMPILE} will be changed
    * to {@value org.eclipse.aether.util.artifact.JavaScopes#PROVIDED} in order to exclude them from the dependency graph.
    * <p/>
-   * Filtering logic includes the following pattern to include all the tests-jar dependencies:
-   * {@value #ALL_TESTS_JAR_ARTIFACT_COORDS}. It also excludes {@link ClassPathClassifierContext#getExcludedArtifacts()},
-   * {@link ClassPathClassifierContext#getTestExclusions()} ()}.
+   * Filtering logic includes the following pattern to includes the patterns defined at
+   * {@link ClassPathClassifierContext#getTestInclusions()}. It also excludes
+   * {@link ClassPathClassifierContext#getExcludedArtifacts()}, {@link ClassPathClassifierContext#getTestExclusions()}.
    * <p/>
    * If the application artifact has not been classified as plugin its {@code target/classes/} folder will be included in this
    * classification.
@@ -467,10 +464,9 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     List<File> applicationFiles = newArrayList(context.getRootArtifactTestClassesFolder());
 
     if (logger.isDebugEnabled()) {
-      logger.debug("Setting filter for dependency graph to include: '{}'", ALL_TESTS_JAR_ARTIFACT_COORDS);
+      logger.debug("Setting filter for dependency graph to include: '{}'", context.getTestInclusions());
     }
-    DependencyFilter dependencyFilter = new PatternInclusionsDependencyFilter(
-                                                                              ALL_TESTS_JAR_ARTIFACT_COORDS);
+    DependencyFilter dependencyFilter = new PatternInclusionsDependencyFilter(context.getTestInclusions());
 
     boolean isRootArtifactPlugin = !pluginUrlClassifications.isEmpty()
         && pluginUrlClassifications.stream().filter(p -> {
@@ -479,7 +475,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
               && plugin.getArtifactId().equals(rootArtifact.getArtifactId());
         }).findFirst().isPresent();
 
-    Set<String> exclusionsPatterns = newHashSet();
+    List<String> exclusionsPatterns = newArrayList();
 
     if (!isRootArtifactPlugin && context.getRootArtifactClassesFolder().exists()) {
       if (logger.isDebugEnabled()) {
@@ -493,7 +489,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
       }
       exclusionsPatterns.add(rootArtifact.getGroupId() + MAVEN_COORDINATES_SEPARATOR
           + rootArtifact.getArtifactId() + MAVEN_COORDINATES_SEPARATOR +
-          JAR_EXTENSION + MAVEN_COORDINATES_SEPARATOR + rootArtifact.getVersion());
+          "*" + MAVEN_COORDINATES_SEPARATOR + rootArtifact.getVersion());
     }
 
     directDependencies = directDependencies.stream()

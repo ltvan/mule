@@ -16,9 +16,10 @@ import org.mule.functional.junit4.runners.ArtifactClassLoaderRunnerConfig;
  * @since 4.0
  */
 @ArtifactClassLoaderRunnerConfig(
-    providedExclusions = "org.mule.tests:*:*:*",
+    providedExclusions = {"org.mule.tests:*:*:*", "*:*:jar:tests:*"},
     testExclusions = {"org.mule:*:*:*", "org.mule.modules*:*:*:*", "org.mule.transports:*:*:*",
-        "org.mule.mvel:*:*:*", "org.mule.common:*:*:*", "org.mule.extensions:*:*:*"})
+        "org.mule.mvel:*:*:*", "org.mule.common:*:*:*", "org.mule.extensions:*:*:*"},
+    testInclusions = {"org.mule.tests:*:*:*", "*:*:jar:tests:*"})
 public abstract class MuleArtifactFunctionalTestCase extends ArtifactFunctionalTestCase {
 
 }

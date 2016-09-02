@@ -48,7 +48,7 @@ public @interface ArtifactClassLoaderRunnerConfig {
   String[] providedExclusions() default {};
 
   /**
-   * Maven artifacts to be explicitly included from the {@code provided} scope direct dependencies of the rootArtifact. In format
+   * Maven artifacts to be  included from the {@code provided} scope direct dependencies of the rootArtifact. In format
    * {@code <groupId>:<artifactId>:[[<extension>]:<version>]}.
    * <p/>
    * This artifacts have to be declared as {@code provided} scope in rootArtifact direct dependencies and no matter if they were
@@ -107,5 +107,15 @@ public @interface ArtifactClassLoaderRunnerConfig {
   // TODO: MULE-10083 - Improve how ArtifactClassLoaderRunner classifies the classpath for selecting which artifacts are already
   // bundled within the container
   String[] testExclusions() default {};
+
+
+  /**
+   * Maven artifacts to be included from the {@code test} scope direct dependencies of the rootArtifact. In format
+   * {@code <groupId>:<artifactId>:[[<classifier>]:<version>]}.
+   *
+   * @return Maven artifacts to be included from the {@code test} scope direct dependencies of the rootArtifact. In format
+   *         {@code <groupId>:<artifactId>:[[<classifier>]:<version>]}.
+   */
+  String[] testInclusions() default {};
 
 }
