@@ -343,7 +343,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
   private URL buildExtensionPluginMetadata(File baseResourcesFolder,
                                            ExtensionsTestInfrastructureDiscoverer extensionsInfrastructure,
                                            Artifact pluginArtifact, List<URL> urls) {
-    logger.debug("Checking if plugin '{}' is an Extension", pluginArtifact);
+    logger.debug("Scanning plugin '{}' for annotated Extension class", pluginArtifact);
     ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(true);
     scanner.addIncludeFilter(new AnnotationTypeFilter(Extension.class));
     scanner.setResourceLoader(new PathMatchingResourcePatternResolver(new URLClassLoader(urls.toArray(new URL[0]), null)));
