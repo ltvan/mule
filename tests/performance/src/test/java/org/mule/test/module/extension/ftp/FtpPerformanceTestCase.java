@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
+import org.mule.functional.junit4.runners.ArtifactClassLoaderRunnerConfig;
 import org.mule.tck.junit4.rule.SystemProperty;
 import org.mule.test.infrastructure.client.ftp.FTPTestClient;
 import org.mule.test.infrastructure.process.rules.FtpServer;
@@ -24,6 +25,7 @@ import org.databene.contiperf.junit.ContiPerfRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+@ArtifactClassLoaderRunnerConfig(plugins = "org.mule.modules:mule-module-ftp")
 public class FtpPerformanceTestCase extends MuleArtifactFunctionalTestCase {
 
   private static final String DEFAULT_FTP_HOST = "localhost";
