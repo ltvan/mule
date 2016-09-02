@@ -524,14 +524,17 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     if (logger.isDebugEnabled()) {
       logger.debug("Resolving dependency graph for '{}' scope direct dependencies: {}", TEST, directDependencies);
     }
+
+    List<Dependency> managedDependencies = localRepositoryService.readArtifactDescriptor(rootArtifact).getManagedDependencies();
+
     applicationFiles
         .addAll(localRepositoryService
             .resolveDependencies(new Dependency(new DefaultArtifact(rootArtifact.getGroupId(), rootArtifact.getArtifactId(),
-                                                                    TESTS_CLASSIFIER, rootArtifact.getExtension(),
+                                                                    TESTS_CLASSIFIER, JAR_EXTENSION,
                                                                     rootArtifact.getVersion()),
                                                 TEST),
                                  directDependencies,
-                                 Collections.<Dependency>emptyList(),
+                                 managedDependencies,
                                  orFilter(dependencyFilter,
                                           new PatternExclusionsDependencyFilter(exclusionsPatterns))));
 
