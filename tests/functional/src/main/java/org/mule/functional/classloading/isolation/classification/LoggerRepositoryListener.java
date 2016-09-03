@@ -5,7 +5,7 @@
  * LICENSE.txt file.
  */
 
-package org.mule.functional.classloading.isolation.classification.aether;
+package org.mule.functional.classloading.isolation.classification;
 
 import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.RepositoryEvent;

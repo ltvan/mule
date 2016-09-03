@@ -5,7 +5,7 @@
  * LICENSE.txt file.
  */
 
-package org.mule.functional.classloading.isolation.classification.aether;
+package org.mule.functional.classloading.isolation.classification;
 
 import static java.util.Arrays.asList;
 

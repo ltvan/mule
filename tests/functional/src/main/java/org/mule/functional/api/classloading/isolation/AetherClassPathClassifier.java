@@ -5,7 +5,7 @@
  * LICENSE.txt file.
  */
 
-package org.mule.functional.classloading.isolation.classification;
+package org.mule.functional.api.classloading.isolation;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.io.File.separator;
@@ -16,12 +16,8 @@ import static org.eclipse.aether.util.artifact.JavaScopes.PROVIDED;
 import static org.eclipse.aether.util.artifact.JavaScopes.TEST;
 import static org.eclipse.aether.util.filter.DependencyFilterUtils.classpathFilter;
 import static org.eclipse.aether.util.filter.DependencyFilterUtils.orFilter;
-import org.mule.functional.api.classloading.isolation.ArtifactUrlClassification;
-import org.mule.functional.api.classloading.isolation.ClassPathClassifier;
-import org.mule.functional.api.classloading.isolation.ClassPathClassifierContext;
-import org.mule.functional.api.classloading.isolation.PluginUrlClassification;
-import org.mule.functional.classloading.isolation.classification.aether.LocalRepositoryService;
-import org.mule.functional.classloading.isolation.classification.aether.PatternInclusionsDependencyFilter;
+import static org.mule.runtime.core.util.Preconditions.checkNotNull;
+import org.mule.functional.classloading.isolation.classification.PatternInclusionsDependencyFilter;
 import org.mule.functional.classloading.isolation.maven.MavenModelFactory;
 import org.mule.functional.junit4.infrastructure.ExtensionsTestInfrastructureDiscoverer;
 import org.mule.runtime.core.DefaultMuleContext;
@@ -69,10 +65,10 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
  * Creates the {@link ArtifactUrlClassification} based on the Maven dependencies declared by the rootArtifact using Eclipse
  * Aether.
  * <p/>
- * Uses a {@link LocalRepositoryService} to resolve Maven dependencies from the Maven local repository and if a
+ * Uses a {@link RepositorySystemFactory} to resolve Maven dependencies from the Maven local repository and if a
  * {@link org.mule.functional.api.classloading.isolation.WorkspaceLocationResolver} has been provided it will also resolve first
  * dependency through a {@link org.eclipse.aether.repository.WorkspaceReader}. See
- * {@link org.mule.functional.classloading.isolation.classification.aether.DefaultWorkspaceReader} for more details about
+ * {@link org.mule.functional.classloading.isolation.classification.DefaultWorkspaceReader} for more details about
  * workspace dependency resolution.
  * <p/>
  * The classification process classifies the rootArtifact dependencies in three groups: {@code provided}, {@code compile} and
@@ -89,9 +85,22 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
   public static final String JAR_EXTENSION = "jar";
   public static final String SNAPSHOT_WILCARD_FILE_FILTER = "*-SNAPSHOT*.*";
   public static final String MULE_EXTENSION = "mule-extension";
-  private static final String GENERATED_TEST_RESOURCES = "generated-test-resources";
+  public static final String GENERATED_TEST_RESOURCES = "generated-test-resources";
   public static final String TESTS_CLASSIFIER = "tests";
+
   protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+  private DependencyResolver dependencyResolver;
+
+  /**
+   * Creates an instance of the classifier.
+   *
+   * @param dependencyResolver {@link DependencyResolver} to resolve dependencies
+   */
+  public AetherClassPathClassifier(DependencyResolver dependencyResolver) {
+    checkNotNull(dependencyResolver, "dependencyResolver cannot be null");
+    this.dependencyResolver = dependencyResolver;
+  }
 
   /**
    * Classifies {@link URL}s and {@link Dependency}s to define how the container, plugins and application class loaders should be
@@ -102,23 +111,20 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    */
   @Override
   public ArtifactUrlClassification classify(ClassPathClassifierContext context) {
-    LocalRepositoryService localRepositoryService =
-        new LocalRepositoryService(context.getClassPathURLs(), context.getWorkspaceLocationResolver());
-
     Artifact rootArtifact = getRootArtifact(context);
     if (logger.isDebugEnabled()) {
       logger.debug("Building class loaders for rootArtifact: {}", rootArtifact);
     }
-    List<Dependency> directDependencies = localRepositoryService
+    List<Dependency> directDependencies = dependencyResolver
         .getDirectDependencies(rootArtifact);
 
     List<PluginUrlClassification> pluginUrlClassifications =
-        buildPluginUrlClassifications(context, rootArtifact, directDependencies, localRepositoryService);
+        buildPluginUrlClassifications(context, rootArtifact, directDependencies);
 
     List<URL> containerUrls =
-        buildContainerUrlClassification(context, directDependencies, localRepositoryService, pluginUrlClassifications);
+        buildContainerUrlClassification(context, directDependencies, pluginUrlClassifications);
     List<URL> applicationUrls = buildApplicationUrlClassification(context, rootArtifact, directDependencies,
-                                                                  localRepositoryService, pluginUrlClassifications);
+                                                                  pluginUrlClassifications);
 
     return new ArtifactUrlClassification(containerUrls, pluginUrlClassifications,
                                          applicationUrls);
@@ -152,13 +158,11 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    * get for each one the manage dependencies and use that list to resolve the graph.
    *
    * @param context {@link ClassPathClassifierContext} with settings for the classification process
-   * @param localRepositoryService {@link LocalRepositoryService} to resolve Maven dependencies
    * @param pluginUrlClassifications {@link PluginUrlClassification}s to check if rootArtifact was classified as plugin
    * @return {@link List} of {@link URL}s for the container class loader
    */
   private List<URL> buildContainerUrlClassification(ClassPathClassifierContext context,
                                                     List<Dependency> directDependencies,
-                                                    LocalRepositoryService localRepositoryService,
                                                     List<PluginUrlClassification> pluginUrlClassifications) {
     directDependencies = directDependencies.stream()
         .filter(directDep -> directDep.getScope().equals(PROVIDED))
@@ -171,7 +175,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
     }
 
     Set<Dependency> managedDependencies = directDependencies.stream()
-        .map(directDep -> localRepositoryService.readArtifactDescriptor(directDep.getArtifact()).getManagedDependencies())
+        .map(directDep -> dependencyResolver.readArtifactDescriptor(directDep.getArtifact()).getManagedDependencies())
         .flatMap(l -> l.stream()).collect(
                                           Collectors.toSet());
 
@@ -197,7 +201,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
       }
     }
 
-    List<URL> containerUrls = toUrl(localRepositoryService
+    List<URL> containerUrls = toUrl(dependencyResolver
         .resolveDependencies(null, directDependencies, newArrayList(managedDependencies),
                              orFilter(new org.eclipse.aether.util.filter.PatternInclusionsDependencyFilter(context
                                  .getProvidedInclusions()),
@@ -225,13 +229,11 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    * @param context {@link ClassPathClassifierContext} with settings for the classification process
    * @param rootArtifact {@link Artifact} that defines the current artifact that requested to build this class loaders
    * @param directDependencies {@link List} of {@link Dependency} with direct dependencies for the rootArtifact
-   * @param localRepositoryService {@link LocalRepositoryService} to resolve Maven dependencies
    * @return {@link List} of {@link PluginUrlClassification}s for plugins class loaders
    */
   private List<PluginUrlClassification> buildPluginUrlClassifications(ClassPathClassifierContext context,
                                                                       Artifact rootArtifact,
-                                                                      List<Dependency> directDependencies,
-                                                                      LocalRepositoryService localRepositoryService) {
+                                                                      List<Dependency> directDependencies) {
     List<PluginUrlClassification> pluginUrlClassifications = newArrayList();
     File baseResourcesFolder = getGeneratedResourcesBase(context.getRootArtifactTestClassesFolder());
 
@@ -243,7 +245,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
         logger.debug("rootArtifact '{}' identified as Extension plugin", rootArtifact);
       }
       pluginUrlClassifications
-          .add(buildPluginUrlClassification(rootArtifact, context, localRepositoryService, baseResourcesFolder,
+          .add(buildPluginUrlClassification(rootArtifact, context, baseResourcesFolder,
                                             extensionsInfrastructure));
     }
 
@@ -263,7 +265,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
           }
         } else {
           pluginUrlClassifications
-              .add(buildPluginUrlClassification(pluginArtifact, context, localRepositoryService, baseResourcesFolder,
+              .add(buildPluginUrlClassification(pluginArtifact, context, baseResourcesFolder,
                                                 extensionsInfrastructure));
         }
       }
@@ -285,18 +287,16 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    *
    * @param pluginArtifact {@link Artifact} that represents the plugin to be classified
    * @param context {@link ClassPathClassifierContext} with settings for the classification process
-   * @param localRepositoryService {@link LocalRepositoryService} to resolve Maven dependencies
    * @param baseResourcesFolder base {@link File} folder for extensions metadata
    * @param extensionsInfrastructure {@link ExtensionsTestInfrastructureDiscoverer} to generate metadata
    * @return {@link PluginUrlClassification} for the plugin
    */
   private PluginUrlClassification buildPluginUrlClassification(Artifact pluginArtifact, ClassPathClassifierContext context,
-                                                               LocalRepositoryService localRepositoryService,
                                                                File baseResourcesFolder,
                                                                ExtensionsTestInfrastructureDiscoverer extensionsInfrastructure) {
-    List<Dependency> managedDependencies = localRepositoryService.readArtifactDescriptor(pluginArtifact).getManagedDependencies();
+    List<Dependency> managedDependencies = dependencyResolver.readArtifactDescriptor(pluginArtifact).getManagedDependencies();
 
-    List<URL> urls = toUrl(localRepositoryService
+    List<URL> urls = toUrl(dependencyResolver
         .resolveDependencies(
                              new Dependency(pluginArtifact,
                                             COMPILE),
@@ -455,14 +455,12 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
    * @param context {@link ClassPathClassifierContext} with settings for the classification process
    * @param rootArtifact {@link Artifact} that defines the current artifact that requested to build this class loaders
    * @param directDependencies {@link List} of {@link Dependency} with direct dependencies for the rootArtifact
-   * @param localRepositoryService {@link LocalRepositoryService} to resolve Maven dependencies
    * @param pluginUrlClassifications {@link PluginUrlClassification}s to check if rootArtifact was classified as plugin
    * @return {@link URL}s for application class loader
    */
   private List<URL> buildApplicationUrlClassification(ClassPathClassifierContext context,
                                                       Artifact rootArtifact,
                                                       List<Dependency> directDependencies,
-                                                      LocalRepositoryService localRepositoryService,
                                                       List<PluginUrlClassification> pluginUrlClassifications) {
     if (logger.isDebugEnabled()) {
       logger.debug("Building application classification");
@@ -525,10 +523,10 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
       logger.debug("Resolving dependency graph for '{}' scope direct dependencies: {}", TEST, directDependencies);
     }
 
-    List<Dependency> managedDependencies = localRepositoryService.readArtifactDescriptor(rootArtifact).getManagedDependencies();
+    List<Dependency> managedDependencies = dependencyResolver.readArtifactDescriptor(rootArtifact).getManagedDependencies();
 
     applicationFiles
-        .addAll(localRepositoryService
+        .addAll(dependencyResolver
             .resolveDependencies(new Dependency(new DefaultArtifact(rootArtifact.getGroupId(), rootArtifact.getArtifactId(),
                                                                     TESTS_CLASSIFIER, JAR_EXTENSION,
                                                                     rootArtifact.getVersion()),

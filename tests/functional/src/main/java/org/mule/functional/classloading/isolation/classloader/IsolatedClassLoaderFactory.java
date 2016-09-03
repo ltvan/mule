@@ -47,7 +47,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -76,13 +75,13 @@ public class IsolatedClassLoaderFactory {
   /**
    * Creates a {@link ArtifactClassLoaderHolder} containing the container, plugins and application {@link ArtifactClassLoader}s
    *
-   * @param extraBootPackages {@link Set} of {@link String}s of extra boot packages to be appended to the container
+   * @param extraBootPackages {@link List} of {@link String}s of extra boot packages to be appended to the container
    *        {@link ClassLoader}
    * @param artifactUrlClassification the {@link ArtifactUrlClassification} that defines the different {@link URL}s for each
    *        {@link ClassLoader}
    * @return a {@link ArtifactClassLoaderHolder} that would be used to run the test
    */
-  public ArtifactClassLoaderHolder createArtifactClassLoader(Set<String> extraBootPackages,
+  public ArtifactClassLoaderHolder createArtifactClassLoader(List<String> extraBootPackages,
                                                              ArtifactUrlClassification artifactUrlClassification) {
     final TestContainerClassLoaderFactory testContainerClassLoaderFactory =
         new TestContainerClassLoaderFactory(extraBootPackages, artifactUrlClassification.getContainerUrls().toArray(new URL[0]));

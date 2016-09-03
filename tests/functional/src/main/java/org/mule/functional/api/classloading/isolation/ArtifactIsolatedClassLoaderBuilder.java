@@ -8,14 +8,12 @@
 package org.mule.functional.api.classloading.isolation;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 import static org.mule.runtime.core.util.Preconditions.checkNotNull;
 import org.mule.functional.classloading.isolation.classloader.IsolatedClassLoaderFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Builds a class loading model that mimics the class loading model used in a standalone container. Useful for running
@@ -27,9 +25,6 @@ import java.util.Set;
  * {@link java.net.URL}'s</li>
  * <li>{@link ClassPathClassifier}: classifies the classpath URLs and builds the {@link List} or {@link java.net.URL}s for each
  * {@link ClassLoader}</li>
- * <li>{@link WorkspaceLocationResolver}: resolves paths, location for Maven project from workspace</li>
- * </ul>
- * For each of these extension points there is a default implementation already provided with this API.
  * <p/>
  * The object built by this builder is a {@link ArtifactClassLoaderHolder} that references the
  * {@link org.mule.runtime.module.artifact.classloader.ArtifactClassLoader} for the application, plugins and container.
@@ -40,7 +35,6 @@ public class ArtifactIsolatedClassLoaderBuilder {
 
   private ClassPathClassifier classPathClassifier;
   private ClassPathUrlProvider classPathUrlProvider;
-  private WorkspaceLocationResolver workspaceLocationResolver;
 
   private IsolatedClassLoaderFactory isolatedClassLoaderFactory = new IsolatedClassLoaderFactory();
 
@@ -50,8 +44,8 @@ public class ArtifactIsolatedClassLoaderBuilder {
   private List<String> testExclusions = newArrayList();
   private List<String> testInclusions = newArrayList();
   private List<String> pluginCoordinates = newArrayList();
-  private Set<Class> exportPluginClasses = newHashSet();
-  private List<String> providedInclusions;
+  private List<Class> exportPluginClasses = newArrayList();
+  private List<String> providedInclusions = newArrayList();
 
   public ArtifactIsolatedClassLoaderBuilder setPluginCoordinates(List<String> pluginCoordinates) {
     this.pluginCoordinates = pluginCoordinates;
@@ -77,17 +71,6 @@ public class ArtifactIsolatedClassLoaderBuilder {
    */
   public ArtifactIsolatedClassLoaderBuilder setClassPathUrlProvider(final ClassPathUrlProvider classPathUrlProvider) {
     this.classPathUrlProvider = classPathUrlProvider;
-    return this;
-  }
-
-  /**
-   * Sets the {@link WorkspaceLocationResolver} implementation to be used by the builder.
-   *
-   * @param workspaceLocationResolver {@link WorkspaceLocationResolver} implementation to be used by the builder.
-   * @return this
-   */
-  public ArtifactIsolatedClassLoaderBuilder setWorkspaceLocationResolver(final WorkspaceLocationResolver workspaceLocationResolver) {
-    this.workspaceLocationResolver = workspaceLocationResolver;
     return this;
   }
 
@@ -178,7 +161,7 @@ public class ArtifactIsolatedClassLoaderBuilder {
    *        purposes only.
    * @return this
    */
-  public ArtifactIsolatedClassLoaderBuilder setExportPluginClasses(final Set<Class> exportPluginClasses) {
+  public ArtifactIsolatedClassLoaderBuilder setExportPluginClasses(final List<Class> exportPluginClasses) {
     this.exportPluginClasses = exportPluginClasses;
     return this;
   }
@@ -195,12 +178,12 @@ public class ArtifactIsolatedClassLoaderBuilder {
     checkNotNull(rootArtifactClassesFolder, "rootArtifactClassesFolder has to be set");
     checkNotNull(rootArtifactTestClassesFolder, "rootArtifactTestClassesFolder has to be set");
     checkNotNull(classPathUrlProvider, "classPathUrlProvider has to be set");
+    checkNotNull(classPathClassifier, "classPathClassifier has to be set");
 
     ClassPathClassifierContext context;
     try {
       context =
           new ClassPathClassifierContext(rootArtifactClassesFolder, rootArtifactTestClassesFolder, classPathUrlProvider.getURLs(),
-                                         workspaceLocationResolver,
                                          providedExclusions,
                                          providedInclusions,
                                          testExclusions,

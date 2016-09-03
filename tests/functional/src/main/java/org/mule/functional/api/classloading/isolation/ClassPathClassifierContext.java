@@ -7,11 +7,11 @@
 
 package org.mule.functional.api.classloading.isolation;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.mule.functional.classloading.isolation.utils.RunnerModuleUtils.EXCLUDED_PROPERTIES_FILE;
 import static org.mule.functional.classloading.isolation.utils.RunnerModuleUtils.getExcludedProperties;
 import static org.mule.runtime.core.util.Preconditions.checkNotNull;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import java.io.File;
@@ -40,15 +40,18 @@ public class ClassPathClassifierContext {
   private final File rootArtifactClassesFolder;
   private final File rootArtifactTestClassesFolder;
   private final List<URL> classPathURLs;
-  private final WorkspaceLocationResolver workspaceLocationResolver;
+
   private final List<String> providedExclusions;
-  private final List<String> excludedArtifacts = Lists.newArrayList();
+  private final List<String> providedInclusions;
   private final List<String> testExclusions;
   private final List<String> testInclusions;
-  private final Set<String> extraBootPackages;
+
+  private final List<String> extraBootPackages;
+
   private final List<String> pluginCoordinates;
-  private final Set<Class> exportPluginClasses;
-  private final List<String> providedInclusions;
+  private final List<Class> exportPluginClasses;
+
+  private final List<String> excludedArtifacts = newArrayList();
 
   /**
    * Creates a context used for doing the classification of the class path.
@@ -57,8 +60,6 @@ public class ClassPathClassifierContext {
    * @param rootArtifactTestClassesFolder {@link File} to the target/test-classes of the current artifact being classified. Not
    *        null.
    * @param classPathURLs the whole set of {@link URL}s that were loaded by IDE/Maven Surefire plugin when running the test. Not
-   *        null.
-   * @param workspaceLocationResolver {@link WorkspaceLocationResolver} for artifactIds. Can be null.
    * @param providedExclusions Maven artifacts to be excluded from the provided scope direct dependencies of rootArtifact. In
    *        format {@code <groupId>:<artifactId>:[[<extension>]:<version>]}.
    * @param providedInclusions Maven artifacts to be excluded from the provided scope direct dependencies of rootArtifact. In
@@ -67,20 +68,19 @@ public class ClassPathClassifierContext {
    * @param testInclusions {@link List} of Maven coordinates to be included in application class loader.
    * @param pluginCoordinates {@link List} of Maven coordinates in format {@code <groupId>:<artifactId>} in order to create plugin
    *        {@link org.mule.runtime.module.artifact.classloader.ArtifactClassLoader}s
-   * @param exportPluginClasses {@link Set} of {@link Class} to be exported in addition to the ones already exported by the
+   * @param exportPluginClasses {@link List} of {@link Class} to be exported in addition to the ones already exported by the
    *        plugin, for testing purposes only.
    * @throws IOException if an error happened while reading
    *         {@link org.mule.functional.classloading.isolation.utils.RunnerModuleUtils#EXCLUDED_PROPERTIES_FILE} file
    */
   public ClassPathClassifierContext(final File rootArtifactClassesFolder, final File rootArtifactTestClassesFolder,
                                     final List<URL> classPathURLs,
-                                    final WorkspaceLocationResolver workspaceLocationResolver,
                                     final List<String> providedExclusions,
                                     final List<String> providedInclusions,
                                     final List<String> testExclusions,
                                     final List<String> testInclusions,
                                     final List<String> pluginCoordinates,
-                                    final Set<Class> exportPluginClasses)
+                                    final List<Class> exportPluginClasses)
       throws IOException {
     checkNotNull(rootArtifactClassesFolder, "rootArtifactClassesFolder cannot be null");
     checkNotNull(rootArtifactTestClassesFolder, "rootArtifactTestClassesFolder cannot be null");
@@ -89,7 +89,6 @@ public class ClassPathClassifierContext {
     this.rootArtifactClassesFolder = rootArtifactClassesFolder;
     this.rootArtifactTestClassesFolder = rootArtifactTestClassesFolder;
     this.classPathURLs = classPathURLs;
-    this.workspaceLocationResolver = workspaceLocationResolver;
     this.providedExclusions = providedExclusions;
     this.providedInclusions = providedInclusions;
 
@@ -128,13 +127,6 @@ public class ClassPathClassifierContext {
    */
   public List<URL> getClassPathURLs() {
     return classPathURLs;
-  }
-
-  /**
-   * @return {@link WorkspaceLocationResolver} resolver for artifactIds folders. Can be {@code null}
-   */
-  public WorkspaceLocationResolver getWorkspaceLocationResolver() {
-    return workspaceLocationResolver;
   }
 
   /**
@@ -189,18 +181,18 @@ public class ClassPathClassifierContext {
   }
 
   /**
-   * @return {@link Set} of {@link String}s containing the extra boot packages defined to be appended to the container in addition
+   * @return {@link List} of {@link String}s containing the extra boot packages defined to be appended to the container in addition
    *         to the pre-defined ones.
    */
-  public Set<String> getExtraBootPackages() {
+  public List<String> getExtraBootPackages() {
     return this.extraBootPackages;
   }
 
   /**
-   * @return {@link Set} of {@link Class}es that are going to be exported in addition to the ones already exported by plugins. For
+   * @return {@link List} of {@link Class}es that are going to be exported in addition to the ones already exported by plugins. For
    *         testing purposes only.
    */
-  public Set<Class> getExportPluginClasses() {
+  public List<Class> getExportPluginClasses() {
     return this.exportPluginClasses;
   }
 
@@ -217,9 +209,9 @@ public class ClassPathClassifierContext {
    * already pre-defined by the mule container.
    *
    * @param excludedProperties {@link Properties }that has the list of extra boot packages definitions
-   * @return a {@link Set} of {@link String}s with the extra boot packages to be appended
+   * @return a {@link List} of {@link String}s with the extra boot packages to be appended
    */
-  private Set<String> getExtraBootPackages(final Properties excludedProperties) {
+  private List<String> getExtraBootPackages(final Properties excludedProperties) {
     Set<String> packages = Sets.newHashSet();
 
     String excludedExtraBootPackages = excludedProperties.getProperty(EXTRA_BOOT_PACKAGES);
@@ -231,7 +223,7 @@ public class ClassPathClassifierContext {
       logger.warn(EXCLUDED_PROPERTIES_FILE
           + " found but there is no list of extra boot packages defined to be added to container, this could be the reason why the test may fail later due to JUnit classes are not found");
     }
-    return packages;
+    return newArrayList(packages);
   }
 
 }
