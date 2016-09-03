@@ -157,9 +157,9 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
     WorkspaceLocationResolver workspaceLocationResolver = new AutoDiscoverWorkspaceLocationResolver(classPath,
                                                                                                     rootArtifactClassesFolder);
     builder.setClassPathClassifier(new AetherClassPathClassifier(RepositorySystemFactory
-                                                                     .newLocalDependencyResolver(classPath,
-                                                                                                 workspaceLocationResolver,
-                                                                                                 getMavenLocalRepository())));
+        .newLocalDependencyResolver(classPath,
+                                    workspaceLocationResolver,
+                                    getMavenLocalRepository())));
 
     return builder.build();
   }
@@ -177,7 +177,7 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
         getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class,
                                             name);
     return Lists.newArrayList(valuesList.stream()
-                                  .flatMap(Arrays::stream).collect(toSet()));
+        .flatMap(Arrays::stream).collect(toSet()));
   }
 
   /**
@@ -219,20 +219,20 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
     List<FrameworkMethod> contextAwareMethods = testClass.getAnnotatedMethods(artifactContextAwareAnn);
     if (contextAwareMethods.size() != 1) {
       throw new IllegalStateException("Isolation tests need to have one method marked with annotation "
-                                          + PluginClassLoadersAware.class.getName());
+          + PluginClassLoadersAware.class.getName());
     }
     for (FrameworkMethod method : contextAwareMethods) {
       if (!method.isStatic() || method.isPublic()) {
         throw new IllegalStateException("Method marked with annotation " + PluginClassLoadersAware.class.getName()
-                                            + " should be private static and it should receive a parameter of type List<"
-                                            + ArtifactClassLoader.class + ">");
+            + " should be private static and it should receive a parameter of type List<"
+            + ArtifactClassLoader.class + ">");
       }
       method.getMethod().setAccessible(true);
       try {
         method.invokeExplosively(null, artifactClassLoaderHolder.getPluginsClassLoaders());
       } catch (IllegalArgumentException e) {
         throw new IllegalStateException("Method marked with annotation " + PluginClassLoadersAware.class.getName()
-                                            + " should receive a parameter of type List<" + ArtifactClassLoader.class + ">");
+            + " should receive a parameter of type List<" + ArtifactClassLoader.class + ">");
       } finally {
         method.getMethod().setAccessible(false);
       }
