@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:httpn="http://www.mulesoft.org/schema/mule/httpn"
+      xmlns:dbn="http://www.mulesoft.org/schema/mule/dbn"
+      xmlns:file="http://www.mulesoft.org/schema/mule/file"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+                          http://www.mulesoft.org/schema/mule/dbn http://www.mulesoft.org/schema/mule/dbn/current/mule-dbn.xsd
+                          http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+                          http://www.mulesoft.org/schema/mule/httpn http://www.mulesoft.org/schema/mule/httpn/current/mule-httpn.xsd">
+
+    <flow name="setup">
+        <dbn:execute-ddl config-ref="dbConfig" queryTimeout="10" queryTimeoutUnit="SECONDS">
+            <dbn:sql>
+                create TABLE customers (
+                id integer PRIMARY KEY,
+                name varchar(255),
+                attachment blob,
+                money decimal(20,2),
+                moles float,
+                dateOfBirth date)
+            </dbn:sql>
+        </dbn:execute-ddl>
+        <logger level="INFO" message="Table created" />
+    </flow>
+
+    <flow name="test">
+        <set-variable variableName="table" value="customers" />
+        <file:read path="/Users/marianogonzalez/mulas/mule-standalone-4.0-SNAPSHOT/lib/mule/mule-core-4.0-SNAPSHOT.jar" target="attachment" />
+        <logger level="INFO" message="Attachment: #[flowVars.attachment]" />
+        <dbn:insert config-ref="dbConfig">
+            <dbn:sql>insert into #[table] (id, name) values (1, 'John')</dbn:sql>
+        </dbn:insert>
+        <dbn:insert config-ref="dbConfig">
+            <dbn:sql>insert into #[table] (id, name) values (2, 'Paul')</dbn:sql>
+        </dbn:insert>
+        <!--<dbn:update config-ref="dbConfig">-->
+            <!--<dbn:sql>update #[table] set attachment = :attachment where ID &lt;&gt; 894323</dbn:sql>-->
+            <!--<dbn:input-parameters>-->
+                <!--<dbn:input-parameter key="attachment" value="#[flowVars.attachment]" />-->
+            <!--</dbn:input-parameters>-->
+        <!--</dbn:update>-->
+        <dbn:select maxRows="1" config-ref="dbConfig">
+            <dbn:sql>select * from #[table]</dbn:sql>
+        </dbn:select>
+        <logger level="ERROR" message="************************************************" />
+        <logger level="ERROR" message="#['Payload: ' + payload]" />
+        <logger level="ERROR" message="#['Payload[0]: ' + payload[0]]" />
+    </flow>
+
+    <flow name="deleteCustomers">
+        <dbn:delete config-ref="dbConfig">
+            <dbn:sql>delete from customers</dbn:sql>
+        </dbn:delete>
+        <logger level="ERROR" message="deleted customers" />
+    </flow>
+
+    <flow name="tearDown">
+        <dbn:execute-ddl config-ref="dbConfig" queryTimeout="10" queryTimeoutUnit="SECONDS">
+            <dbn:sql>
+                drop TABLE customers
+            </dbn:sql>
+        </dbn:execute-ddl>
+        <logger level="ERROR" message="Table deleted" />
+    </flow>
+
+
+</mule>
