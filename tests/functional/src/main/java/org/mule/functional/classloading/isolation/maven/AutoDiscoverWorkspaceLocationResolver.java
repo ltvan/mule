@@ -68,8 +68,6 @@ public class AutoDiscoverWorkspaceLocationResolver implements WorkspaceLocationR
 
   private Map<String, File> filePathByArtifactId = new HashMap<>();
 
-  private int hashCode;
-
   /**
    * Creates an instance of this class.
    *
@@ -168,7 +166,6 @@ public class AutoDiscoverWorkspaceLocationResolver implements WorkspaceLocationR
     mavenProjects.stream().forEach(file -> resolvedArtifact(readMavenPomFile(getPomFile(file)).getArtifactId(), file.toPath()));
   }
 
-
   /**
    * {@inheritDoc}
    */
@@ -229,30 +226,6 @@ public class AutoDiscoverWorkspaceLocationResolver implements WorkspaceLocationR
     logger.trace("Resolved artifactId from workspace at {}={}", artifactId, path);
     filePathByArtifactId.put(artifactId, path.toFile());
   }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    } else if (null == obj || !getClass().equals(obj.getClass())) {
-      return false;
-    }
-
-    AutoDiscoverWorkspaceLocationResolver that = (AutoDiscoverWorkspaceLocationResolver) obj;
-    return filePathByArtifactId.equals(that.filePathByArtifactId);
-  }
-
-  @Override
-  public int hashCode() {
-    if (hashCode == 0) {
-      int hash = getClass().hashCode();
-      hash = hash * 31 + filePathByArtifactId.hashCode();
-
-      hashCode = hash;
-    }
-    return hashCode;
-  }
-
 
   /**
    * Looks for directories that contain a {@value #POM_XML_FILE} file so it will be added to the resolved artifacts locations.

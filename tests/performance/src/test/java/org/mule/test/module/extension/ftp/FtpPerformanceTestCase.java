@@ -25,7 +25,7 @@ import org.databene.contiperf.junit.ContiPerfRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-@ArtifactClassLoaderRunnerConfig(plugins = "org.mule.modules:mule-module-ftp")
+@ArtifactClassLoaderRunnerConfig(plugins = {"org.mule.modules:mule-module-ftp", "org.mule.modules:mule-module-file"})
 public class FtpPerformanceTestCase extends MuleArtifactFunctionalTestCase {
 
   private static final String DEFAULT_FTP_HOST = "localhost";
