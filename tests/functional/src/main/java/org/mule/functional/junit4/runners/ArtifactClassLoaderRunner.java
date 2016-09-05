@@ -66,7 +66,12 @@ import org.slf4j.LoggerFactory;
  * {@link ArtifactClassLoader}.
  * <p/>
  * The classification bases its logic by resolving Maven dependency graphs using Eclipse Aether. See
- * {@link AetherClassPathClassifier} for more details about this.
+ * {@link AetherClassPathClassifier} for more details about this. In order to allow the classification to resolve Maven artifact
+ * from the local Maven repository, if the default location is not used {@code $USER_HOME/.m2/repository}, the following system
+ * property has to be to the local Maven repository location when running a test from IDE:
+ * <pre>
+ * System.getProperty("localRepository")
+ * </pre>
  * <p/>
  * Only one instance of the {@link ClassLoader} is created and used to run all the tests that are marked to run with this
  * {@link Runner} due to creating the {@link ClassLoader} requires time and has impact when running tests.
@@ -130,7 +135,7 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
    *
    * @param klass the test class being executed
    * @return creates a {@link ArtifactClassLoaderHolder} that would be used to run the test. This way the test will be isolated
-   * and it will behave similar as an application running in a Mule standalone container.
+   *         and it will behave similar as an application running in a Mule standalone container.
    */
   private static synchronized ArtifactClassLoaderHolder createClassLoaderTestRunner(Class<?> klass) {
     final File targetTestClassesFolder = new File(klass.getProtectionDomain().getCodeSource().getLocation().getPath());
@@ -206,10 +211,10 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
    * Invokes the method to inject the plugin class loaders as the test is annotated with {@link PluginClassLoadersAware}.
    *
    * @param artifactClassLoaderHolder the result {@link ArtifactClassLoader}s defined for container, plugins and application
-   * @param isolatedTestClass         the test {@link Class} loaded with the isolated {@link ClassLoader}
+   * @param isolatedTestClass the test {@link Class} loaded with the isolated {@link ClassLoader}
    * @throws IllegalStateException if the test doesn't have an annotated method to inject plugin class loaders or if it has more
-   *                               than one method annotated.
-   * @throws Throwable             if an error ocurrs while setting the list of {@link ArtifactClassLoader}s for plugins.
+   *         than one method annotated.
+   * @throws Throwable if an error ocurrs while setting the list of {@link ArtifactClassLoader}s for plugins.
    */
   private static void injectPluginsClassLoaders(ArtifactClassLoaderHolder artifactClassLoaderHolder, Class<?> isolatedTestClass)
       throws Throwable {

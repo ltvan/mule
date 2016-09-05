@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClassPathUrlProvider {
 
+  public static final String CLASSPATH_SEPARATOR = ":";
   protected final transient Logger logger = LoggerFactory.getLogger(this.getClass());
   private final List<URL> urls;
 
@@ -59,8 +60,8 @@ public class ClassPathUrlProvider {
    */
   private List<URL> readUrlsFromSystemProperties() {
     final Set<URL> urls = new LinkedHashSet<>();
-    addUrlsFromSystemProperty(urls, "sun.boot.class.path");
     addUrlsFromSystemProperty(urls, "java.class.path");
+    addUrlsFromSystemProperty(urls, "sun.boot.class.path");
     addUrlsFromSystemProperty(urls, "surefire.test.class.path");
 
     if (logger.isDebugEnabled()) {
@@ -79,7 +80,7 @@ public class ClassPathUrlProvider {
   protected void addUrlsFromSystemProperty(final Collection<URL> urls, final String propertyName) {
     String property = System.getProperty(propertyName);
     if (property != null) {
-      for (String file : property.split(":")) {
+      for (String file : property.split(CLASSPATH_SEPARATOR)) {
         try {
           urls.add(new File(file).toURI().toURL());
         } catch (MalformedURLException e) {

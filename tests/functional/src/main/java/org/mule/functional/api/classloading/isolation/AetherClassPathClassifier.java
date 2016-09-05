@@ -63,17 +63,16 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 /**
  * Creates the {@link ArtifactUrlClassification} based on the Maven dependencies declared by the rootArtifact using Eclipse
- * Aether.
- * <p/>
- * Uses a {@link RepositorySystemFactory} to resolve Maven dependencies from the Maven local repository and if a
- * {@link org.mule.functional.api.classloading.isolation.WorkspaceLocationResolver} has been provided it will also resolve first
- * dependency through a {@link org.eclipse.aether.repository.WorkspaceReader}. See
- * {@link org.mule.functional.classloading.isolation.classification.DefaultWorkspaceReader} for more details about
- * workspace dependency resolution.
+ * Aether. Uses a {@link DependencyResolver} to resolve Maven dependencies.
  * <p/>
  * The classification process classifies the rootArtifact dependencies in three groups: {@code provided}, {@code compile} and
  * {@code test} scopes. It resolves dependencies graph for each group applying filters and exclusions and classifies the list of
- * {@link URL}s that would define each class loader space, container, plugins and application.
+ * {@link URL}s that would define each class loader container, plugins and application.
+ * <p/>
+ * Dependencies resolution uses dependencies management declared by these artifacts while resolving the dependency graph.
+ * <p/>
+ * Plugins are discovered as {@link Extension} if they do have a annotated a {@link Class}. It generates the {@link Extension}
+ * metadata in order to later register it to an {@link org.mule.runtime.extension.api.ExtensionManager}.
  *
  * @since 4.0
  */

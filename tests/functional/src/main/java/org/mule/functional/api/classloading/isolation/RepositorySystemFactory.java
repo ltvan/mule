@@ -38,11 +38,11 @@ import org.slf4j.LoggerFactory;
  * Factory to create a {@link RepositorySystem} from Eclipse Aether to work in {@code offline} mode and resolve dependencies
  * through a {@link org.eclipse.aether.repository.WorkspaceReader} and a {@link LocalRepository}.
  * <p/>
- * Dependencies are resolved using the Maven local repository. It works in {@code offline} so any missing {@link Artifact} while
- * resolving the dependency graph will be logged along with the path to these unresolved artifacts.
+ * Any missing {@link Artifact} while resolving the dependency graph will be logged along with the path to these unresolved
+ * artifacts.
  * <p/>
  * It is assumed that before this is used either Maven triggered the build and resolved dependencies, downloaded and installed
- * them in the local repository or the IDE downloaded and installed them using Maven plugins.
+ * them in the local repository, or the IDE downloaded and installed them using Maven plugins.
  * <p/>
  * It also supports a {@link org.eclipse.aether.repository.WorkspaceReader} to resolve from Workspace artifacts that were not yet
  * packaged (multi-module projects in Maven or project references in IDE) if a {@link WorkspaceLocationResolver} is provided.

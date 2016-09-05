@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
  *    <maven.multiModuleProjectDirectory>${maven.multiModuleProjectDirectory}</maven.multiModuleProjectDirectory>
  *  </systemPropertyVariables>
  * </pre>
+ * <p/>
  *
  * @since 4.0
  */
