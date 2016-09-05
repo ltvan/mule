@@ -10,6 +10,7 @@ import org.mule.runtime.core.api.MuleEventContext;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.construct.FlowConstructAware;
 import org.mule.runtime.core.api.lifecycle.Callable;
+import org.mule.test.core.lifecycle.AbstractLifecycleTracker;
 
 /**
  * @author David Dossot (david@dossot.net)
