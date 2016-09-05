@@ -29,7 +29,7 @@ import org.mule.runtime.api.metadata.resolving.MetadataResult;
 import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.internal.metadata.MuleMetadataManager;
 import org.mule.runtime.extension.api.introspection.metadata.NullMetadataKey;
-import org.mule.runtime.module.extension.internal.util.ExtensionsTestUtils;
+import org.mule.test.module.extension.internal.util.ExtensionsTestUtils;
 import org.mule.test.metadata.extension.MetadataConnection;
 import org.mule.test.metadata.extension.MetadataExtension;
 import org.mule.test.metadata.extension.resolver.TestMetadataResolverUtils;
