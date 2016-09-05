@@ -4,13 +4,12 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package org.mule.runtime.core.lifecycle;
+package org.mule.test.core.lifecycle;
 
 import org.mule.runtime.core.api.MuleEventContext;
 import org.mule.runtime.core.api.construct.FlowConstruct;
 import org.mule.runtime.core.api.construct.FlowConstructAware;
 import org.mule.runtime.core.api.lifecycle.Callable;
-import org.mule.test.core.lifecycle.AbstractLifecycleTracker;
 
 /**
  * @author David Dossot (david@dossot.net)
