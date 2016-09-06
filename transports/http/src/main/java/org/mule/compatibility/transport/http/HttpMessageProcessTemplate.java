@@ -141,7 +141,7 @@ public class HttpMessageProcessTemplate extends AbstractTransportMessageProcessT
       try {
         httpServerConnection.writeResponse(response, getThrottlingHeaders());
       } catch (Exception e) {
-        throw new ResponseDispatchException(responseMuleEvent, e);
+        throw new ResponseDispatchException(e);
       }
       if (logger.isTraceEnabled()) {
         logger.trace("HTTP response sent successfully");
