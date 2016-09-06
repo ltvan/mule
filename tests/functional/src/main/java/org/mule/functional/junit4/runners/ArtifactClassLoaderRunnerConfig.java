@@ -74,7 +74,6 @@ public @interface ArtifactClassLoaderRunnerConfig {
    *
    * @return array of {@link String} to define plugins in order to create for each a plugin {@link ClassLoader}
    */
-  // TODO: MULE-10081 - Add support for scanning multiple base packages when discovering extensions
   String[] plugins() default {};
 
   /**
@@ -104,8 +103,6 @@ public @interface ArtifactClassLoaderRunnerConfig {
    * @return Maven artifacts to be excluded from the {@code test} scope direct dependencies of the rootArtifact. In format
    *         {@code <groupId>:<artifactId>:[[<extension>]:<version>]}.
    */
-  // TODO: MULE-10083 - Improve how ArtifactClassLoaderRunner classifies the classpath for selecting which artifacts are already
-  // bundled within the container
   String[] testExclusions() default {};
 
 

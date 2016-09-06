@@ -23,71 +23,105 @@ public class LoggerRepositoryListener extends AbstractRepositoryListener {
   protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   public void artifactDeployed(RepositoryEvent event) {
-    logger.info("Deployed {} to {}", event.getArtifact(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Deployed {} to {}", event.getArtifact(), event.getRepository());
+    }
   }
 
   public void artifactDeploying(RepositoryEvent event) {
-    logger.info("Deploying {} to {}", event.getArtifact(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Deploying {} to {}", event.getArtifact(), event.getRepository());
+    }
   }
 
   public void artifactDescriptorInvalid(RepositoryEvent event) {
-    logger.info("Invalid artifact descriptor for {}: {}", event.getArtifact(), event.getException().getMessage());
+    if (logger.isInfoEnabled()) {
+      logger.info("Invalid artifact descriptor for {}: {}", event.getArtifact(), event.getException().getMessage());
+    }
   }
 
   public void artifactDescriptorMissing(RepositoryEvent event) {
-    logger.info("Missing artifact descriptor for {}", event.getArtifact());
+    if (logger.isInfoEnabled()) {
+      logger.info("Missing artifact descriptor for {}", event.getArtifact());
+    }
   }
 
   public void artifactInstalled(RepositoryEvent event) {
-    logger.info("Installed {} to {}", event.getArtifact(), event.getFile());
+    if (logger.isInfoEnabled()) {
+      logger.info("Installed {} to {}", event.getArtifact(), event.getFile());
+    }
   }
 
   public void artifactInstalling(RepositoryEvent event) {
-    logger.info("Installing {} to {}", event.getArtifact(), event.getFile());
+    if (logger.isInfoEnabled()) {
+      logger.info("Installing {} to {}", event.getArtifact(), event.getFile());
+    }
   }
 
   public void artifactResolved(RepositoryEvent event) {
-    logger.info("Resolved artifact {} from {}", event.getArtifact(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Resolved artifact {} from {}", event.getArtifact(), event.getRepository());
+    }
   }
 
   public void artifactDownloading(RepositoryEvent event) {
-    logger.info("Downloading artifact {} from {}", event.getArtifact(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Downloading artifact {} from {}", event.getArtifact(), event.getRepository());
+    }
   }
 
   public void artifactDownloaded(RepositoryEvent event) {
-    logger.info("Downloaded artifact {} from {}", event.getArtifact(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Downloaded artifact {} from {}", event.getArtifact(), event.getRepository());
+    }
   }
 
   public void artifactResolving(RepositoryEvent event) {
-    logger.info("Resolving artifact {}", event.getArtifact());
+    if (logger.isInfoEnabled()) {
+      logger.info("Resolving artifact {}", event.getArtifact());
+    }
   }
 
   public void metadataDeployed(RepositoryEvent event) {
-    logger.info("Deployed {} to {}", event.getMetadata(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Deployed {} to {}", event.getMetadata(), event.getRepository());
+    }
   }
 
   public void metadataDeploying(RepositoryEvent event) {
-    logger.info("Deploying {} to {}", event.getMetadata(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Deploying {} to {}", event.getMetadata(), event.getRepository());
+    }
   }
 
   public void metadataInstalled(RepositoryEvent event) {
-    logger.info("Installed {} to {}", event.getMetadata(), event.getFile());
+    if (logger.isInfoEnabled()) {
+      logger.info("Installed {} to {}", event.getMetadata(), event.getFile());
+    }
   }
 
   public void metadataInstalling(RepositoryEvent event) {
-    logger.info("Installing {} to {}", event.getMetadata(), event.getFile());
+    if (logger.isInfoEnabled()) {
+      logger.info("Installing {} to {}", event.getMetadata(), event.getFile());
+    }
   }
 
   public void metadataInvalid(RepositoryEvent event) {
-    logger.info("Invalid metadata {}", event.getMetadata());
+    if (logger.isInfoEnabled()) {
+      logger.info("Invalid metadata {}", event.getMetadata());
+    }
   }
 
   public void metadataResolved(RepositoryEvent event) {
-    logger.info("Resolved metadata {} from {}", event.getMetadata(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Resolved metadata {} from {}", event.getMetadata(), event.getRepository());
+    }
   }
 
   public void metadataResolving(RepositoryEvent event) {
-    logger.info("Resolving metadata {} from {}", event.getMetadata(), event.getRepository());
+    if (logger.isInfoEnabled()) {
+      logger.info("Resolving metadata {} from {}", event.getMetadata(), event.getRepository());
+    }
   }
 
 }

@@ -16,7 +16,6 @@ import org.eclipse.aether.artifact.Artifact;
  *
  * @since 4.0
  */
-// TODO: MULE-10085 - Avoid manual mapping declaration for multi-module folders to artifactId
 public interface WorkspaceLocationResolver {
 
   /**
