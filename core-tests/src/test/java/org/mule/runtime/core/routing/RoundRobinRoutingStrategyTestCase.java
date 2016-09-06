@@ -76,8 +76,8 @@ public class RoundRobinRoutingStrategyTestCase extends AbstractDynamicRoundRobin
     try {
       roundRobinRoutingStrategy.route(eventToRoute, messageProcessors);
       fail("Exception was expected");
-    } catch (MessagingException me) {
-      assertEquals(EXCEPTION_MESSAGE, me.getCause().getMessage());
+    } catch (RoutingFailedException fe) {
+      assertEquals(EXCEPTION_MESSAGE, fe.getCause().getMessage());
     }
     assertEquals(LETTER_B, getPayloadAsString(roundRobinRoutingStrategy.route(eventToRoute, messageProcessors).getMessage()));
     assertEquals(LETTER_A, getPayloadAsString(roundRobinRoutingStrategy.route(eventToRoute, messageProcessors).getMessage()));
