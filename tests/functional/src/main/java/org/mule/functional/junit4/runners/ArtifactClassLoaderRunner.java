@@ -226,7 +226,7 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
       }
     } else {
       LOGGER.warn(EXCLUDED_PROPERTIES_FILE
-                      + " found but there is no list of extra boot packages defined to be added to container, this could be the reason why the test may fail later due to JUnit classes are not found");
+          + " found but there is no list of extra boot packages defined to be added to container, this could be the reason why the test may fail later due to JUnit classes are not found");
     }
     return newArrayList(packages);
   }
@@ -244,7 +244,7 @@ public class ArtifactClassLoaderRunner extends Runner implements Filterable {
         getAnnotationAttributeFromHierarchy(klass, ArtifactClassLoaderRunnerConfig.class,
                                             name);
     return newArrayList(valuesList.stream()
-                            .flatMap(Arrays::stream).collect(toSet()));
+        .flatMap(Arrays::stream).collect(toSet()));
   }
 
   /**
