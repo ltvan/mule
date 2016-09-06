@@ -6,21 +6,13 @@
  */
 package org.mule.runtime.module.launcher.log4j2;
 
-import static java.util.Collections.emptyList;
 import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessage;
 import org.mule.runtime.core.api.MuleRuntimeException;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
-import org.mule.runtime.module.artifact.classloader.ArtifactClassLoaderFilterFactory;
 import org.mule.runtime.module.artifact.classloader.DirectoryResourceLocator;
 import org.mule.runtime.module.artifact.classloader.LocalResourceLocator;
 import org.mule.runtime.module.artifact.classloader.ShutdownListener;
-import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptorFactory;
-import org.mule.runtime.module.launcher.ApplicationDescriptorFactory;
 import org.mule.runtime.module.launcher.descriptor.ApplicationDescriptor;
-import org.mule.runtime.module.launcher.plugin.ArtifactPluginDescriptor;
-import org.mule.runtime.module.launcher.plugin.ArtifactPluginDescriptorFactory;
-import org.mule.runtime.module.launcher.plugin.ArtifactPluginDescriptorLoader;
-import org.mule.runtime.module.launcher.plugin.ArtifactPluginRepository;
 import org.mule.runtime.module.reboot.MuleContainerBootstrapUtils;
 
 import java.io.File;
@@ -29,7 +21,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 
 import org.apache.logging.log4j.core.LoggerContext;
 
@@ -89,7 +80,7 @@ public class MuleLoggerContextFactory {
   private URI getArtifactLoggingConfig(ArtifactClassLoader muleCL) {
     URI appLogConfig;
     try {
-      ApplicationDescriptor appDescriptor = fetchApplicationDescriptor(muleCL);
+      ApplicationDescriptor appDescriptor = muleCL.getArtifactDescriptor();
 
       if (appDescriptor.getLogConfigFile() == null) {
         appLogConfig = getLogConfig(muleCL);
@@ -156,17 +147,8 @@ public class MuleLoggerContextFactory {
   }
 
   public ApplicationDescriptor fetchApplicationDescriptor(ArtifactClassLoader muleCL) throws IOException {
-    // TODO(pablo.kraan): MULE-9778 - MuleLoggerContextFactory should not create artifact descriptors
-    ArtifactDescriptorFactory<ApplicationDescriptor> applicationDescriptorFactory =
-        new ApplicationDescriptorFactory(new ArtifactPluginDescriptorLoader(new ArtifactPluginDescriptorFactory(new ArtifactClassLoaderFilterFactory())),
-                                         new ArtifactPluginRepository() {
-
-                                           public List<ArtifactPluginDescriptor> getContainerArtifactPluginDescriptors() {
-                                             // Don't need plugins, just need to get the descriptor to access log configuration
-                                             return emptyList();
-                                           }
-                                         });
-    return applicationDescriptorFactory.create(new File(MuleContainerBootstrapUtils.getMuleAppsDir(), muleCL.getArtifactName()));
+    //TODO(pablo.kraan): logging - remove this method
+    return null;
   }
 
   private class NewContextParameters {

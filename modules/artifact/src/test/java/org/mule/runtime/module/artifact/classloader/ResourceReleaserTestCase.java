@@ -93,6 +93,7 @@ public class ResourceReleaserTestCase extends AbstractMuleTestCase {
 
     private ResourceReleaser resourceReleaserInstance;
 
+    //TODO(pablo.kraan): logging - review this constructor
     public TestArtifactClassLoader(ClassLoader parentCl) {
       super("testArtifact", new URL[0], parentCl, new ClassLoaderLookupPolicy() {
 
@@ -105,7 +106,7 @@ public class ResourceReleaserTestCase extends AbstractMuleTestCase {
         public ClassLoaderLookupPolicy extend(Map<String, ClassLoaderLookupStrategy> lookupStrategies) {
           return null;
         }
-      });
+      }, null);
     }
 
     @Override

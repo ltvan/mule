@@ -60,7 +60,7 @@ public class MuleSharedDomainClassLoaderTestCase extends AbstractMuleTestCase {
     final List<URL> urls = Collections.singletonList(resourceFile.toURI().toURL());
 
     MuleSharedDomainClassLoader classLoader =
-        new MuleSharedDomainClassLoader(DEFAULT_DOMAIN_NAME, getClass().getClassLoader(), lookupPolicy, urls);
+        new MuleSharedDomainClassLoader(DEFAULT_DOMAIN_NAME, getClass().getClassLoader(), lookupPolicy, urls, null);
 
     assertThat(classLoader.findResource(RESOURCE_FILE_NAME), notNullValue());
   }

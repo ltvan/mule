@@ -98,12 +98,19 @@ public class FakeMuleServer {
 
     deploymentService = new MuleDeploymentService(muleArtifactResourcesRegistry.getDomainFactory(),
                                                   muleArtifactResourcesRegistry.getApplicationFactory());
-    deploymentListener = mock(DeploymentListener.class);
-    deploymentService.addDeploymentListener(deploymentListener);
+    try {
+      {
+      }
+      deploymentListener = mock(DeploymentListener.class);
+      deploymentService.addDeploymentListener(deploymentListener);
 
-    coreExtensionManager =
-        new DefaultMuleCoreExtensionManagerServer(() -> coreExtensions, new ReflectionMuleCoreExtensionDependencyResolver());
-    coreExtensionManager.setDeploymentService(deploymentService);
+      coreExtensionManager =
+          new DefaultMuleCoreExtensionManagerServer(() -> coreExtensions, new ReflectionMuleCoreExtensionDependencyResolver());
+      coreExtensionManager.setDeploymentService(deploymentService);
+    } catch (Exception e) {
+      System.out.println("MONCHO");
+      throw e;
+    }
   }
 
   public void stop() throws MuleException {

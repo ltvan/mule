@@ -389,6 +389,7 @@ public class DeploymentDirectoryWatcher implements Runnable {
         }
       } catch (DeploymentException e) {
         // Ignore and continue
+        logger.error("Error deploying domain '" + addedDomain + "'", e);
       }
     }
   }

@@ -49,7 +49,7 @@ public class MuleApplicationClassLoaderFactory implements DeployableArtifactClas
 
     return new MuleApplicationClassLoader(descriptor.getName(), parent.getClassLoader(),
                                           nativeLibraryFinderFactory.create(descriptor.getName()), urls,
-                                          classLoaderLookupPolicy, artifactPluginClassLoaders);
+                                          classLoaderLookupPolicy, artifactPluginClassLoaders, descriptor);
   }
 
   private ClassLoaderLookupPolicy getApplicationClassLoaderLookupPolicy(ArtifactClassLoader parent,

@@ -51,7 +51,7 @@ public class ArtifactPluginClassLoaderFactory implements ArtifactClassLoaderFact
 
     final ClassLoaderLookupPolicy lookupPolicy = parent.getClassLoaderLookupPolicy().extend(pluginsLookupPolicies);
 
-    return new MuleArtifactClassLoader(descriptor.getName(), urls, parent.getClassLoader(), lookupPolicy);
+    return new MuleArtifactClassLoader(descriptor.getName(), urls, parent.getClassLoader(), lookupPolicy, descriptor);
   }
 
   private ClassLoaderLookupStrategy getClassLoaderLookupStrategy(ArtifactPluginDescriptor descriptor,

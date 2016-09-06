@@ -11,11 +11,11 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.concat;
 import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessage;
 import static org.mule.runtime.core.util.Preconditions.checkArgument;
+import org.mule.runtime.module.artifact.classloader.MuleDeployableArtifactClassLoader;
 import org.mule.runtime.module.launcher.ApplicationClassLoaderBuilderFactory;
 import org.mule.runtime.module.launcher.ApplicationDescriptorFactory;
 import org.mule.runtime.module.launcher.DeploymentException;
 import org.mule.runtime.module.launcher.DeploymentListener;
-import org.mule.runtime.module.launcher.MuleApplicationClassLoader;
 import org.mule.runtime.module.launcher.artifact.ArtifactFactory;
 import org.mule.runtime.module.launcher.descriptor.ApplicationDescriptor;
 import org.mule.runtime.module.launcher.domain.Domain;
@@ -86,9 +86,10 @@ public class DefaultApplicationFactory implements ArtifactFactory<Application> {
                                                                descriptor.getDomain(), descriptor.getName())));
     }
 
-    MuleApplicationClassLoader applicationClassLoader = applicationClassLoaderBuilderFactory.createArtifactClassLoaderBuilder()
-        .setDomain(domain).addArtifactPluginDescriptors(descriptor.getPlugins().toArray(new ArtifactPluginDescriptor[0]))
-        .setArtifactId(descriptor.getName()).setArtifactDescriptor(descriptor).build();
+    MuleDeployableArtifactClassLoader applicationClassLoader =
+        applicationClassLoaderBuilderFactory.createArtifactClassLoaderBuilder()
+            .setDomain(domain).addArtifactPluginDescriptors(descriptor.getPlugins().toArray(new ArtifactPluginDescriptor[0]))
+            .setArtifactId(descriptor.getName()).setArtifactDescriptor(descriptor).build();
 
     List<ArtifactPluginDescriptor> applicationPluginDescriptors =
         concat(artifactPluginRepository.getContainerArtifactPluginDescriptors().stream(), descriptor.getPlugins().stream())
@@ -106,7 +107,7 @@ public class DefaultApplicationFactory implements ArtifactFactory<Application> {
     return new ApplicationWrapper(delegate);
   }
 
-  private List<ArtifactPlugin> createArtifactPluginList(MuleApplicationClassLoader applicationClassLoader,
+  private List<ArtifactPlugin> createArtifactPluginList(MuleDeployableArtifactClassLoader applicationClassLoader,
                                                         List<ArtifactPluginDescriptor> plugins) {
     return plugins.stream()
         .map(artifactPluginDescriptor -> new DefaultArtifactPlugin(artifactPluginDescriptor, applicationClassLoader

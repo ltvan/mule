@@ -238,6 +238,7 @@ final class LoggerContextConfigurer {
   }
 
   private String getFilenamePattern(MuleLoggerContext context) {
+    //TODO(pablo.kraan): logging - find another way to determine the log filename
     if (context.isArtifactClassloader()) {
       return context.isApplicationClassloader() ? MULE_APP_LOG_FILE_TEMPLATE : MULE_DOMAIN_LOG_FILE_TEMPLATE;
     }
@@ -246,7 +247,7 @@ final class LoggerContextConfigurer {
   }
 
   private LoggerConfig getRootLogger(LoggerContext context) {
-    return ((AbstractConfiguration) context.getConfiguration()).getRootLogger();
+    return context.getConfiguration().getRootLogger();
   }
 
   private void removeAppender(LoggerContext context, Appender appender) {

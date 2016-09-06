@@ -29,7 +29,7 @@ public class TemporaryArtifactClassLoaderFactory implements DeployableArtifactCl
   public ArtifactClassLoader create(ArtifactClassLoader parent, ArtifactDescriptor descriptor,
                                     List<ArtifactClassLoader> artifactPluginClassLoaders) {
     return new MuleDeployableArtifactClassLoader(getUUID(), new URL[0], parent.getClassLoader(),
-                                                 parent.getClassLoaderLookupPolicy(), artifactPluginClassLoaders);
+                                                 parent.getClassLoaderLookupPolicy(), artifactPluginClassLoaders, null);
   }
 
 }

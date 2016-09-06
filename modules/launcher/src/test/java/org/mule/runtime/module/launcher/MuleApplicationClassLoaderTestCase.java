@@ -89,9 +89,11 @@ public class MuleApplicationClassLoaderTestCase extends AbstractMuleTestCase {
 
     // Create app class loader
     domainCL = new MuleSharedDomainClassLoader(DOMAIN_NAME, Thread.currentThread().getContextClassLoader(),
-                                               mock(ClassLoaderLookupPolicy.class), emptyList());
+                                               mock(ClassLoaderLookupPolicy.class), emptyList(), null);
 
-    appCL = new MuleApplicationClassLoader(APP_NAME, domainCL, null, urls, mock(ClassLoaderLookupPolicy.class), emptyList());
+    //TODO(pablo.kraan): logging - review this test
+    appCL =
+        new MuleApplicationClassLoader(APP_NAME, domainCL, null, urls, mock(ClassLoaderLookupPolicy.class), emptyList(), null);
   }
 
   @After

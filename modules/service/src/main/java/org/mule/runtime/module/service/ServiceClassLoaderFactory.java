@@ -45,7 +45,7 @@ public class ServiceClassLoaderFactory implements ArtifactClassLoaderFactory<Ser
     loadJarsFromFolder(urls, new File(rootFolder, LIB_DIR));
 
     return new MuleArtifactClassLoader(descriptor.getName(), urls.toArray(new URL[0]), parent.getClassLoader(),
-                                       parent.getClassLoaderLookupPolicy());
+                                       parent.getClassLoaderLookupPolicy(), descriptor);
   }
 
   private void loadJarsFromFolder(List<URL> urls, File folder) {

@@ -14,6 +14,7 @@ import static org.mule.runtime.core.util.Preconditions.checkArgument;
 
 import org.mule.runtime.core.util.IOUtils;
 import org.mule.runtime.core.util.StringUtils;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -41,16 +42,27 @@ public class MuleArtifactClassLoader extends FineGrainedControlClassLoader imple
   private LocalResourceLocator localResourceLocator;
 
   private String resourceReleaserClassLocation = DEFAULT_RESOURCE_RELEASER_CLASS_LOCATION;
+  private ArtifactDescriptor artifactDescriptor;
 
-  public MuleArtifactClassLoader(String name, URL[] urls, ClassLoader parent, ClassLoaderLookupPolicy lookupPolicy) {
+  public MuleArtifactClassLoader(String name, URL[] urls, ClassLoader parent, ClassLoaderLookupPolicy lookupPolicy,
+                                 ArtifactDescriptor artifactDescriptor) {
     super(urls, parent, lookupPolicy);
+    if (artifactDescriptor == null) {
+      checkArgument(artifactDescriptor != null, "artifactDescriptor cannot be null");
+    }
     checkArgument(!StringUtils.isEmpty(name), "Artifact name cannot be empty");
     this.name = name;
+    this.artifactDescriptor = artifactDescriptor;
   }
 
   @Override
   public String getArtifactName() {
     return name;
+  }
+
+  @Override
+  public <T extends ArtifactDescriptor> T getArtifactDescriptor() {
+    return (T) artifactDescriptor;
   }
 
   protected String[] getLocalResourceLocations() {
@@ -111,9 +123,9 @@ public class MuleArtifactClassLoader extends FineGrainedControlClassLoader imple
   @Override
   public URL findLocalResource(String resourceName) {
     URL resource = getLocalResourceLocator().findLocalResource(resourceName);
-    if (resource == null && getParent() instanceof LocalResourceLocator) {
-      resource = ((LocalResourceLocator) getParent()).findLocalResource(resourceName);
-    }
+    //if (resource == null && getParent() instanceof LocalResourceLocator) {
+    //  resource = ((LocalResourceLocator) getParent()).findLocalResource(resourceName);
+    //}
     return resource;
   }
 

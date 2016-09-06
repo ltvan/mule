@@ -16,6 +16,7 @@ import org.mule.runtime.module.artifact.classloader.EnumerationAdapter;
 import org.mule.runtime.module.artifact.classloader.FilteringArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -42,8 +43,10 @@ public class ContainerClassLoaderFactory {
       registerAsParallelCapable();
     }
 
-    private MuleContainerClassLoader(String name, URL[] urls, ClassLoader parent, ClassLoaderLookupPolicy lookupPolicy) {
-      super(name, urls, parent, lookupPolicy);
+    private MuleContainerClassLoader(String name, URL[] urls, ClassLoader parent, ClassLoaderLookupPolicy lookupPolicy,
+                                     ArtifactDescriptor artifactDescriptor) {
+      //TODO(pablo.kraan): logging - review all the invocations of this constructor
+      super(name, urls, parent, lookupPolicy, artifactDescriptor);
     }
 
     @Override
@@ -93,7 +96,10 @@ public class ContainerClassLoaderFactory {
   public ArtifactClassLoader createContainerClassLoader(final ClassLoader parentClassLoader) {
     final List<MuleModule> muleModules = moduleDiscoverer.discover();
     final ClassLoaderLookupPolicy containerLookupPolicy = getContainerClassLoaderLookupPolicy(muleModules);
-    return createArtifactClassLoader(parentClassLoader, muleModules, containerLookupPolicy);
+
+    final ArtifactDescriptor containerDescriptor = new ArtifactDescriptor();
+    containerDescriptor.setName("mule");
+    return createArtifactClassLoader(parentClassLoader, muleModules, containerLookupPolicy, containerDescriptor);
   }
 
   /**
@@ -116,12 +122,15 @@ public class ContainerClassLoaderFactory {
    * @param parentClassLoader the parent {@link ClassLoader} for the container
    * @param muleModules the list of {@link MuleModule}s to be used for defining the filter
    * @param containerLookupPolicy the {@link ClassLoaderLookupPolicy} to be used by the container
+   * @param artifactDescriptor
    * @return a {@link ArtifactClassLoader} to be used in a {@link FilteringContainerClassLoader}
    */
   protected ArtifactClassLoader createArtifactClassLoader(final ClassLoader parentClassLoader, List<MuleModule> muleModules,
-                                                          final ClassLoaderLookupPolicy containerLookupPolicy) {
+                                                          final ClassLoaderLookupPolicy containerLookupPolicy,
+                                                          ArtifactDescriptor artifactDescriptor) {
     return createContainerFilteringClassLoader(muleModules, new MuleContainerClassLoader("mule", new URL[0], parentClassLoader,
-                                                                                         containerLookupPolicy));
+                                                                                         containerLookupPolicy,
+                                                                                         artifactDescriptor));
   }
 
   public void setModuleDiscoverer(ModuleDiscoverer moduleDiscoverer) {

@@ -33,6 +33,7 @@ import org.junit.Test;
  */
 public class LogConfigurationTestCase extends AbstractFakeMuleServerTestCase {
 
+  //TODO(pablo.kraan): logging - fix these tests
   public static final String APP_NAME = "app1";
   public static final String DOMAIN_NAME = "domain";
 
@@ -61,6 +62,11 @@ public class LogConfigurationTestCase extends AbstractFakeMuleServerTestCase {
     muleServer.deployDomainFromClasspathFolder("log/empty-domain", DOMAIN_NAME);
     muleServer.deploy("/log/appInDomain.zip", APP_NAME);
     ensureOnlyDefaultAppender();
+  }
+
+  @Override
+  public int getTestTimeoutSecs() {
+    return 120000;
   }
 
   @Test
