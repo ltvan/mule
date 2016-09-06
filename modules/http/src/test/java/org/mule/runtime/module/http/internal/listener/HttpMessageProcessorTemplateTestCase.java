@@ -22,15 +22,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessage;
 import static org.mule.runtime.module.http.api.HttpConstants.HttpStatus.INTERNAL_SERVER_ERROR;
-
-import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.core.api.MuleContext;
 import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.MuleMessage;
 import org.mule.runtime.core.api.processor.MessageProcessor;
-import org.mule.runtime.core.config.i18n.CoreMessages;
+import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.core.execution.ResponseCompletionCallback;
 import org.mule.runtime.module.http.internal.domain.response.HttpResponse;
 import org.mule.runtime.module.http.internal.listener.async.HttpResponseReadyCallback;
@@ -69,7 +68,8 @@ public class HttpMessageProcessorTemplateTestCase extends AbstractMuleTestCase {
                                          HttpResponseBuilder.emptyInstance(muleContext));
 
     httpMessageProcessorTemplate
-        .sendFailureResponseToClient(new MessagingException(CoreMessages.createStaticMessage(TEST_MESSAGE), testEvent), null);
+        .sendFailureResponseToClient(new MessagingException(createStaticMessage(TEST_MESSAGE), testEvent, new RuntimeException()),
+                                     null);
     assertThat(httpResponseCaptor.getValue().getStatusCode(), is(INTERNAL_SERVER_ERROR.getStatusCode()));
   }
 

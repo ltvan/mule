@@ -222,7 +222,8 @@ public class HttpListener extends Source<Object, HttpRequestAttributes> implemen
                   // For now let's use the HTTP transport exception mapping since makes sense and the gateway depends on it.
                   MessagingException messagingException = (MessagingException) exception;
                   String exceptionStatusCode =
-                      ExceptionHelper.getTransportErrorMapping(HTTP.getScheme(), messagingException.getCause().getClass(), muleContext);
+                      ExceptionHelper.getTransportErrorMapping(HTTP.getScheme(), messagingException.getCause().getClass(),
+                                                               muleContext);
                   Integer statusCodeFromException = exceptionStatusCode != null ? Integer.valueOf(exceptionStatusCode) : 500;
                   final HttpResponseBuilder failureResponseBuilder = new HttpResponseBuilder()
                       .setStatusCode(statusCodeFromException)

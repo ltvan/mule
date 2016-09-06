@@ -20,6 +20,7 @@ import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.MuleMessage;
 import org.mule.runtime.core.api.security.SecurityManager;
 import org.mule.runtime.core.api.security.UnauthorisedException;
+import org.mule.runtime.core.config.i18n.Message;
 import org.mule.runtime.module.http.internal.filter.HttpBasicAuthenticationFilter;
 import org.mule.tck.junit4.AbstractMuleContextTestCase;
 
@@ -39,7 +40,7 @@ public class HttpBasicAuthenticationFilterTestCase extends AbstractMuleContextTe
     SecurityManager manager = mock(SecurityManager.class);
     filter.setSecurityManager(manager);
 
-    doThrow(new UnauthorisedException(null)).when(manager).authenticate(anyObject());
+    doThrow(new UnauthorisedException(mock(Message.class))).when(manager).authenticate(anyObject());
 
     try {
       filter.authenticate(event);
