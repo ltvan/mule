@@ -86,7 +86,7 @@ public class IdempotentMessageFilter extends AbstractFilteringMessageProcessor i
     return flowConstruct.getMuleContext().getExpressionManager().parse(valueExpression, event, flowConstruct, true);
   }
 
-  protected String getIdForEvent(MuleEvent event) throws MessagingException {
+  protected String getIdForEvent(MuleEvent event) throws MuleException {
     return flowConstruct.getMuleContext().getExpressionManager().parse(idExpression, event, flowConstruct, true);
   }
 
@@ -124,7 +124,7 @@ public class IdempotentMessageFilter extends AbstractFilteringMessageProcessor i
           logger.warn("ObjectStore exception: " + e.getMessage());
           return false;
         }
-      } catch (MessagingException e) {
+      } catch (MuleException e) {
         logger.warn("Could not retrieve Id or Value for event: " + e.getMessage());
         return false;
       }

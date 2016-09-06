@@ -45,6 +45,7 @@ import org.mule.runtime.core.api.routing.filter.FilterUnacceptedException;
 import org.mule.runtime.core.api.transformer.Transformer;
 import org.mule.runtime.core.construct.Flow;
 import org.mule.runtime.core.context.notification.SecurityNotification;
+import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.core.message.DefaultExceptionPayload;
 import org.mule.runtime.core.processor.NullMessageProcessor;
 import org.mule.tck.security.TestSecurityFilter;
@@ -190,7 +191,7 @@ public class InboundEndpointTestCase extends AbstractMessageProcessorTestCase {
       result = mpChain.process(requestEvent);
       fail("Exception expected");
     } catch (TestSecurityFilter.StaticMessageUnauthorisedException e) {
-      endpoint.getFlowConstruct().getExceptionListener().handleException(e, requestEvent);
+      endpoint.getFlowConstruct().getExceptionListener().handleException(new MessagingException(requestEvent, e), requestEvent);
     }
 
     assertTrue(securityNotificationListener.latch.await(RECEIVE_TIMEOUT, MILLISECONDS));

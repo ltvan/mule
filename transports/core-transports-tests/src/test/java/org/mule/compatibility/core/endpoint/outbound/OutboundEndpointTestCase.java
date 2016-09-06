@@ -200,7 +200,8 @@ public class OutboundEndpointTestCase extends AbstractMessageProcessorTestCase {
       endpoint.process(testOutboundEvent);
       fail("Exception expected");
     } catch (TestSecurityFilter.StaticMessageUnauthorisedException e) {
-      endpoint.getFlowConstruct().getExceptionListener().handleException(e, testOutboundEvent);
+      endpoint.getFlowConstruct().getExceptionListener().handleException(new MessagingException(testOutboundEvent, e),
+                                                                         testOutboundEvent);
     }
 
     assertMessageNotSent();

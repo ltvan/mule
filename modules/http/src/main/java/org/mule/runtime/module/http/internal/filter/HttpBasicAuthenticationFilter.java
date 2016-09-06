@@ -134,7 +134,7 @@ public class HttpBasicAuthenticationFilter extends AbstractAuthenticationFilter 
           logger.debug("Authentication request for user: " + username + " failed: " + e.toString());
         }
         setUnauthenticated(event);
-        throw new UnauthorisedException(authFailedForUser(username), event, e);
+        throw new UnauthorisedException(authFailedForUser(username), e);
       }
 
       // Authentication success
@@ -152,7 +152,7 @@ public class HttpBasicAuthenticationFilter extends AbstractAuthenticationFilter 
     } else {
       setUnauthenticated(event);
       throw new UnsupportedAuthenticationSchemeException(createStaticMessage("Http Basic filter doesn't know how to handle header "
-          + header), event);
+          + header));
     }
   }
 }

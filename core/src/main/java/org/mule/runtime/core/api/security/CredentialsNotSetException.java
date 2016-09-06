@@ -19,12 +19,12 @@ public class CredentialsNotSetException extends UnauthorisedException {
    */
   private static final long serialVersionUID = -6271648179641734580L;
 
-  public CredentialsNotSetException(Message message, MuleEvent event) {
-    super(message, event);
+  public CredentialsNotSetException(Message message) {
+    super(message);
   }
 
-  public CredentialsNotSetException(Message message, MuleEvent event, Throwable cause) {
-    super(message, event, cause);
+  public CredentialsNotSetException(Message message, Throwable cause) {
+    super(message, cause);
   }
 
   public CredentialsNotSetException(MuleEvent event, SecurityContext context, SecurityFilter filter) {

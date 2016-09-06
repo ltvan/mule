@@ -13,7 +13,7 @@ import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.MuleMessage;
 import org.mule.runtime.core.api.transformer.Transformer;
 import org.mule.runtime.core.api.transformer.TransformerException;
-import org.mule.runtime.core.api.transformer.TransformerMessagingException;
+import org.mule.runtime.core.api.transformer.MessageTransformerException;
 import org.mule.runtime.core.config.i18n.CoreMessages;
 import org.mule.runtime.module.cxf.CxfConstants;
 
@@ -57,9 +57,9 @@ public class OutputSoapHeadersInterceptor extends AbstractSoapInterceptor {
 
           event.setMessage(MuleMessage.builder(event.getMessage()).addInboundProperty(key, value).build());
         } catch (TransformerException e) {
-          throw new Fault(new TransformerMessagingException(CoreMessages
+          throw new Fault(new MessageTransformerException(CoreMessages
               .createStaticMessage("Cannot parse content of SOAP header %s in the response", header.getName().getLocalPart()),
-                                                            event, transformer, e.getCause()));
+                                                          transformer, e.getCause()));
         }
       }
     }

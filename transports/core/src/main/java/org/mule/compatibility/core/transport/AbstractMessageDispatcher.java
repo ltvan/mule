@@ -8,7 +8,6 @@ package org.mule.compatibility.core.transport;
 
 import static org.mule.runtime.core.DefaultMuleEvent.setCurrentEvent;
 import static org.mule.runtime.core.api.config.MuleProperties.MULE_DISABLE_TRANSPORT_TRANSFORMER_PROPERTY;
-import static org.mule.runtime.core.api.config.MuleProperties.MULE_REMOTE_SYNC_PROPERTY;
 import static org.mule.runtime.core.util.SystemUtils.getDefaultEncoding;
 
 import org.mule.compatibility.core.api.endpoint.OutboundEndpoint;
@@ -94,7 +93,7 @@ public abstract class AbstractMessageDispatcher extends AbstractTransportMessage
     } catch (MuleException muleException) {
       throw muleException;
     } catch (Exception e) {
-      throw new DispatchException(event, getEndpoint(), e);
+      throw new DispatchException(getEndpoint(), e);
     }
   }
 

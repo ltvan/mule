@@ -52,6 +52,7 @@ import org.mule.runtime.core.api.security.SecurityFilter;
 import org.mule.runtime.core.api.transaction.TransactionConfig;
 import org.mule.runtime.core.api.transformer.Transformer;
 import org.mule.runtime.core.context.notification.SecurityNotification;
+import org.mule.runtime.core.exception.MessagingException;
 import org.mule.tck.probe.PollingProber;
 import org.mule.tck.probe.Probe;
 import org.mule.tck.probe.Prober;
@@ -143,7 +144,8 @@ public class DynamicOutboundEndpointTestCase extends AbstractMessageProcessorTes
       endpoint.process(testOutboundEvent);
       fail("Exception expected");
     } catch (TestSecurityFilter.StaticMessageUnauthorisedException e) {
-      endpoint.getFlowConstruct().getExceptionListener().handleException(e, testOutboundEvent);
+      endpoint.getFlowConstruct().getExceptionListener().handleException(new MessagingException(testOutboundEvent, e),
+                                                                         testOutboundEvent);
     }
 
     assertNull(MyMessageDispatcherFactory.dispatcher);

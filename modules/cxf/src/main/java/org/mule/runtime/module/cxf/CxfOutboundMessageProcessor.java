@@ -150,9 +150,9 @@ public class CxfOutboundMessageProcessor extends AbstractInterceptingMessageProc
         MuleException muleException = (MuleException) fault.getCause();
         return alwaysReturnMessagingException ? new MessagingException(event, muleException, this) : muleException;
       }
-      return new DispatchException(MessageFactory.createStaticMessage(fault.getMessage()), event, this, fault);
+      return new DispatchException(MessageFactory.createStaticMessage(fault.getMessage()), this, fault);
     }
-    return new DispatchException(MessageFactory.createStaticMessage(ExceptionHelper.getRootException(ex).getMessage()), event,
+    return new DispatchException(MessageFactory.createStaticMessage(ExceptionHelper.getRootException(ex).getMessage()),
                                  this, ex);
   }
 

@@ -10,12 +10,12 @@ package org.mule.runtime.core.routing;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-
 import org.mule.runtime.core.DefaultMuleEvent;
-import org.mule.runtime.core.exception.MessagingException;
 import org.mule.runtime.core.api.MuleEvent;
+import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.api.processor.MessageProcessor;
 import org.mule.runtime.core.api.routing.RoutePathNotFoundException;
+import org.mule.runtime.core.exception.MessagingException;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,12 +45,12 @@ public class RoundRobinRoutingStrategyTestCase extends AbstractDynamicRoundRobin
   }
 
   @Test(expected = RoutePathNotFoundException.class)
-  public void testNullMessageProcessors() throws MessagingException {
+  public void testNullMessageProcessors() throws MuleException {
     roundRobinRoutingStrategy.route(mock(DefaultMuleEvent.class), null);
   }
 
   @Test(expected = RoutePathNotFoundException.class)
-  public void testEmptyMessageProcessors() throws MessagingException {
+  public void testEmptyMessageProcessors() throws MuleException {
     roundRobinRoutingStrategy.route(mock(DefaultMuleEvent.class), Collections.EMPTY_LIST);
   }
 

@@ -170,7 +170,7 @@ public class HttpBasicAuthenticationFilter extends AbstractAuthenticationFilter 
     } else {
       event = setUnauthenticated(event);
       throw new UnsupportedAuthenticationSchemeException(createStaticMessage("Http Basic filter doesn't know how to handle header "
-          + header), event);
+          + header));
     }
   }
 }

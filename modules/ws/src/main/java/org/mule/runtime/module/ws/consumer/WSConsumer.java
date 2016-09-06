@@ -13,6 +13,38 @@ import static org.mule.runtime.core.DefaultMuleEvent.getFlowVariableOrNull;
 import static org.mule.runtime.core.message.DefaultMultiPartPayload.BODY_ATTRIBUTES;
 import static org.mule.runtime.core.util.IOUtils.toDataHandler;
 import static org.mule.runtime.module.http.api.HttpConstants.ResponseProperties.HTTP_STATUS_PROPERTY;
+import org.mule.runtime.api.message.MultiPartPayload;
+import org.mule.runtime.api.metadata.MediaType;
+import org.mule.runtime.core.api.MuleContext;
+import org.mule.runtime.core.api.MuleEvent;
+import org.mule.runtime.core.api.MuleException;
+import org.mule.runtime.core.api.MuleMessage;
+import org.mule.runtime.core.api.MuleMessage.Builder;
+import org.mule.runtime.core.api.connector.DispatchException;
+import org.mule.runtime.core.api.construct.FlowConstruct;
+import org.mule.runtime.core.api.construct.FlowConstructAware;
+import org.mule.runtime.core.api.context.MuleContextAware;
+import org.mule.runtime.core.api.lifecycle.Disposable;
+import org.mule.runtime.core.api.lifecycle.Initialisable;
+import org.mule.runtime.core.api.lifecycle.InitialisationException;
+import org.mule.runtime.core.api.processor.MessageProcessor;
+import org.mule.runtime.core.api.processor.MessageProcessorChainBuilder;
+import org.mule.runtime.core.api.registry.RegistrationException;
+import org.mule.runtime.core.config.i18n.CoreMessages;
+import org.mule.runtime.core.config.i18n.MessageFactory;
+import org.mule.runtime.core.exception.MessagingException;
+import org.mule.runtime.core.message.DefaultMultiPartPayload;
+import org.mule.runtime.core.message.PartAttributes;
+import org.mule.runtime.core.processor.AbstractRequestResponseMessageProcessor;
+import org.mule.runtime.core.processor.NonBlockingMessageProcessor;
+import org.mule.runtime.core.processor.chain.DefaultMessageProcessorChainBuilder;
+import org.mule.runtime.core.util.Base64;
+import org.mule.runtime.core.util.IOUtils;
+import org.mule.runtime.module.cxf.CxfConstants;
+import org.mule.runtime.module.cxf.CxfOutboundMessageProcessor;
+import org.mule.runtime.module.cxf.builder.ProxyClientMessageProcessorBuilder;
+import org.mule.runtime.module.ws.security.SecurityStrategy;
+import org.mule.runtime.module.ws.security.WSSecurity;
 
 import java.io.IOException;
 import java.net.URL;
@@ -45,38 +77,6 @@ import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.mule.runtime.api.message.MultiPartPayload;
-import org.mule.runtime.api.metadata.MediaType;
-import org.mule.runtime.core.exception.MessagingException;
-import org.mule.runtime.core.api.MuleContext;
-import org.mule.runtime.core.api.MuleEvent;
-import org.mule.runtime.core.api.MuleException;
-import org.mule.runtime.core.api.MuleMessage;
-import org.mule.runtime.core.api.MuleMessage.Builder;
-import org.mule.runtime.core.api.connector.DispatchException;
-import org.mule.runtime.core.api.construct.FlowConstruct;
-import org.mule.runtime.core.api.construct.FlowConstructAware;
-import org.mule.runtime.core.api.context.MuleContextAware;
-import org.mule.runtime.core.api.lifecycle.Disposable;
-import org.mule.runtime.core.api.lifecycle.Initialisable;
-import org.mule.runtime.core.api.lifecycle.InitialisationException;
-import org.mule.runtime.core.api.processor.MessageProcessor;
-import org.mule.runtime.core.api.processor.MessageProcessorChainBuilder;
-import org.mule.runtime.core.api.registry.RegistrationException;
-import org.mule.runtime.core.config.i18n.CoreMessages;
-import org.mule.runtime.core.config.i18n.MessageFactory;
-import org.mule.runtime.core.message.DefaultMultiPartPayload;
-import org.mule.runtime.core.message.PartAttributes;
-import org.mule.runtime.core.processor.AbstractRequestResponseMessageProcessor;
-import org.mule.runtime.core.processor.NonBlockingMessageProcessor;
-import org.mule.runtime.core.processor.chain.DefaultMessageProcessorChainBuilder;
-import org.mule.runtime.core.util.Base64;
-import org.mule.runtime.core.util.IOUtils;
-import org.mule.runtime.module.cxf.CxfConstants;
-import org.mule.runtime.module.cxf.CxfOutboundMessageProcessor;
-import org.mule.runtime.module.cxf.builder.ProxyClientMessageProcessorBuilder;
-import org.mule.runtime.module.ws.security.SecurityStrategy;
-import org.mule.runtime.module.ws.security.WSSecurity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
@@ -182,20 +182,20 @@ public class WSConsumer
       protected MuleEvent processNext(MuleEvent event) throws MuleException {
         try {
           return super.processNext(event);
-        } catch (DispatchException e) {
+        } catch (MessagingException e) {
           /*
            * When a Soap Fault is returned in the response, CXF raises a SoapFault exception. We need to wrap the information of
            * this exception into a new exception of the WS consumer module
            */
 
-          if (e.getCause() instanceof SoapFault) {
-            SoapFault soapFault = (SoapFault) e.getCause();
+          if (e.getCause() instanceof DispatchException && e.getCause().getCause() instanceof SoapFault) {
+            SoapFault soapFault = (SoapFault) e.getCause().getCause();
 
             event.setMessage(MuleMessage.builder(event.getMessage())
                 .payload(soapFault.getDetail() != null ? soapFault.getDetail() : null).build());
 
-            throw new SoapFaultException(event, soapFault.getFaultCode(), soapFault.getSubCode(), soapFault.getMessage(),
-                                         soapFault.getDetail(), this);
+            throw new SoapFaultException(soapFault.getFaultCode(), soapFault.getSubCode(), soapFault.getMessage(),
+                                         soapFault.getDetail());
           } else {
             throw e;
           }

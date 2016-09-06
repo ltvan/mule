@@ -4,21 +4,26 @@
  * license, a copy of which has been included with this distribution in the
  * LICENSE.txt file.
  */
-package org.mule.runtime.core.api.security;
+package org.mule.runtime.core.routing;
 
 import org.mule.runtime.core.api.MuleException;
 import org.mule.runtime.core.config.i18n.Message;
 
 /**
- * <code>SecurityException</code> is a generic security exception
+ * Exception through by routing strategies when routing fails
  */
-public abstract class SecurityException extends MuleException {
+public class RoutingFailedException extends MuleException {
 
-  protected SecurityException(Message message) {
+  public RoutingFailedException(Message message) {
     super(message);
   }
 
-  protected SecurityException(Message message, Throwable cause) {
+  public RoutingFailedException(Message message, Throwable cause) {
     super(message, cause);
   }
+
+  public RoutingFailedException(Throwable cause) {
+    super(cause);
+  }
+
 }

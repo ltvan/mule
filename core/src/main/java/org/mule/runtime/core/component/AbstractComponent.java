@@ -119,7 +119,7 @@ public abstract class AbstractComponent extends AbstractAnnotatedObject
     } catch (MuleException me) {
       throw me;
     } catch (Exception e) {
-      throw new ComponentException(CoreMessages.failedToInvoke(this.toString()), event, this, e);
+      throw new ComponentException(CoreMessages.failedToInvoke(this.toString()), this, e);
     }
   }
 

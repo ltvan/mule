@@ -38,7 +38,7 @@ public class ExceptionsTestCase extends AbstractMuleTestCase {
   @Test
   public final void testRoutingExceptionNullMessageValidProcessor() throws MuleException {
     MessageProcessor processor = mock(MessageProcessor.class);
-    RoutingException rex = new RoutingException(mock(DefaultMuleEvent.class), processor);
+    RoutingException rex = new RoutingException(processor);
     assertSame(processor, rex.getRoute());
   }
 

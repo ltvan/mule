@@ -66,12 +66,12 @@ public class ValidationExceptionTestCase extends ValidationTestCase {
 
     @Override
     public <T extends Exception> T createException(ValidationResult result, Class<T> exceptionClass, MuleEvent event) {
-      return (T) new ValidationException(error(MESSAGE_FAILED), event);
+      return (T) new ValidationException(error(MESSAGE_FAILED));
     }
 
     @Override
     public Exception createException(ValidationResult result, String exceptionClassName, MuleEvent event) {
-      return new ValidationException(error(MESSAGE_FAILED), event);
+      return new ValidationException(error(MESSAGE_FAILED));
     }
   }
 }

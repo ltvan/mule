@@ -7,6 +7,7 @@
 package org.mule.runtime.core.processor;
 
 import static org.mule.runtime.core.api.lifecycle.LifecycleUtils.initialiseIfNeeded;
+import static org.mule.runtime.core.config.i18n.MessageFactory.createStaticMessage;
 
 import org.mule.runtime.core.api.MuleEvent;
 import org.mule.runtime.core.api.MuleException;
@@ -166,8 +167,8 @@ public class IdempotentRedeliveryPolicy extends AbstractRedeliveryPolicy {
           if (deadLetterQueue != null) {
             return deadLetterQueue.process(event);
           } else {
-            throw new MessageRedeliveredException(messageId, counter.get(), maxRedeliveryCount, event,
-                                                  CoreMessages.createStaticMessage("Redelivery exhausted"), this);
+            throw new MessageRedeliveredException(messageId, counter.get(), maxRedeliveryCount,
+                                                  createStaticMessage("Redelivery exhausted"));
           }
         } catch (MessageRedeliveredException ex) {
           throw ex;

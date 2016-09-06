@@ -8,7 +8,7 @@ package org.mule.runtime.module.xml.transformers.xml.xslt;
 
 import static junit.framework.Assert.assertTrue;
 
-import org.mule.runtime.core.api.transformer.TransformerMessagingException;
+import org.mule.runtime.core.api.transformer.MessageTransformerException;
 import org.mule.functional.junit4.FunctionalTestCase;
 import org.mule.runtime.core.util.IOUtils;
 
@@ -30,19 +30,19 @@ public class XsltTransformerXXETestCase extends FunctionalTestCase {
     return "xslt-xxe-config.xml";
   }
 
-  @Test(expected = TransformerMessagingException.class)
+  @Test(expected = MessageTransformerException.class)
   public void xxeAsStream() throws Exception {
     String input = this.makeInput();
     this.flowRunner("safeXxe").withPayload(new ByteArrayInputStream(input.getBytes())).run().getMessage().getPayload();
   }
 
-  @Test(expected = TransformerMessagingException.class)
+  @Test(expected = MessageTransformerException.class)
   public void xxeAsString() throws Exception {
     String input = this.makeInput();
     this.flowRunner("safeXxe").withPayload(input).run().getMessage().getPayload();
   }
 
-  @Test(expected = TransformerMessagingException.class)
+  @Test(expected = MessageTransformerException.class)
   public void xxeAsByteArray() throws Exception {
     String input = this.makeInput();
     this.flowRunner("safeXxe").withPayload(input.getBytes()).run().getMessage().getPayload();

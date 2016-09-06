@@ -6,7 +6,6 @@
  */
 package org.mule.runtime.core.api.security;
 
-import static org.mule.runtime.core.DefaultMuleEvent.getCurrentEvent;
 import static org.mule.runtime.core.config.i18n.CoreMessages.authFailedForUser;
 import static org.mule.runtime.core.config.i18n.CoreMessages.authSetButNoContext;
 import static org.mule.runtime.core.config.i18n.CoreMessages.authorizationDeniedOnEndpoint;
@@ -26,23 +25,23 @@ public class NotPermittedException extends SecurityException {
   private static final long serialVersionUID = -6664384216189042673L;
 
   public NotPermittedException(Message message) {
-    super(message, getCurrentEvent());
+    super(message);
   }
 
   public NotPermittedException(Message message, Throwable cause, MessageProcessor failingMessageProcessor) {
-    super(message, getCurrentEvent(), cause, failingMessageProcessor);
+    super(message, cause);
   }
 
   public NotPermittedException(Message message, MuleEvent event) {
-    super(message, event);
+    super(message);
   }
 
   public NotPermittedException(Message message, MuleEvent event, Throwable cause, MessageProcessor failingMessageProcessor) {
-    super(message, event, cause, failingMessageProcessor);
+    super(message, cause);
   }
 
   public NotPermittedException(MuleEvent event, SecurityContext context, SecurityFilter filter) {
-    super(constructMessage(context, event.getContext().getOriginatingConnectorName(), filter), event);
+    super(constructMessage(context, event.getContext().getOriginatingConnectorName(), filter));
   }
 
   private static Message constructMessage(SecurityContext context,

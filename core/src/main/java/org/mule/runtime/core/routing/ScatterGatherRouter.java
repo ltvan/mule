@@ -118,7 +118,7 @@ public class ScatterGatherRouter extends AbstractMessageProcessorOwner implement
   @Override
   public MuleEvent process(MuleEvent event) throws MuleException {
     if (CollectionUtils.isEmpty(routes)) {
-      throw new RoutePathNotFoundException(CoreMessages.noEndpointsForRouter(), event, null);
+      throw new RoutePathNotFoundException(CoreMessages.noEndpointsForRouter(), null);
     }
 
     MuleMessage message = event.getMessage();
@@ -203,7 +203,7 @@ public class ScatterGatherRouter extends AbstractMessageProcessorOwner implement
     return new DispatchException(MessageFactory.createStaticMessage(String.format(
                                                                                   "route number %d failed to be executed",
                                                                                   routeIndex)),
-                                 event, route, e);
+                                 route, e);
   }
 
   private List<ProcessingMuleEventWork> executeWork(MuleEvent event) throws MuleException {

@@ -36,7 +36,7 @@ public abstract class AbstractSequenceRouter extends FilteringOutboundRouter {
     MuleMessage message = event.getMessage();
 
     if (routes == null || routes.size() == 0) {
-      throw new RoutePathNotFoundException(CoreMessages.noEndpointsForRouter(), event, null);
+      throw new RoutePathNotFoundException(CoreMessages.noEndpointsForRouter(), null);
     }
 
     ((DefaultMuleEvent) event).setCorrelation(new Correlation(routes.size(), null));
@@ -65,7 +65,7 @@ public abstract class AbstractSequenceRouter extends FilteringOutboundRouter {
         }
       }
     } catch (MuleException e) {
-      throw new CouldNotRouteOutboundMessageException(event, routes.get(0), e);
+      throw new CouldNotRouteOutboundMessageException(routes.get(0), e);
     }
     return resultsHandler.aggregateResults(results, event);
   }
