@@ -384,7 +384,7 @@ public class AetherClassPathClassifier implements ClassPathClassifier {
                                                                                                             .getVersion())),
                                                        generatedResourcesDirectory);
 
-      return toUrl(generatedResourcesDirectory);
+      return toUrl(generatedResourcesDirectory.getParentFile());
     } else {
       if (logger.isDebugEnabled()) {
         logger.debug("Plugin '{}' not an Extension", pluginArtifact);
