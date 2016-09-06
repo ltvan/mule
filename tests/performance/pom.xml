@@ -24,16 +24,6 @@
                     <skip>${skipPerformanceTests}</skip>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>com.github.ferstl</groupId>
-                <artifactId>depgraph-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>depgraph-dependencies-graph</id>
-                        <phase>process-resources</phase>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
@@ -62,7 +52,6 @@
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-file</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mule.extensions</groupId>
@@ -86,7 +75,6 @@
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-ftp</artifactId>
             <version>${project.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
