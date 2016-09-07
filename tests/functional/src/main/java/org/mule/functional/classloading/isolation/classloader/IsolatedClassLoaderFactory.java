@@ -32,6 +32,7 @@ import org.mule.runtime.module.artifact.classloader.FilteringArtifactClassLoader
 import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
 import org.mule.runtime.module.artifact.classloader.RegionClassLoader;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 import org.mule.runtime.module.artifact.util.FileJarExplorer;
 import org.mule.runtime.module.artifact.util.JarInfo;
 import org.mule.runtime.module.extension.internal.manager.DefaultExtensionManager;
@@ -89,8 +90,11 @@ public class IsolatedClassLoaderFactory {
 
     ClassLoaderLookupPolicy childClassLoaderLookupPolicy = testContainerClassLoaderFactory.getContainerClassLoaderLookupPolicy();
 
+    final ArtifactDescriptor applicationDescriptor = new ArtifactDescriptor();
+    applicationDescriptor.setName("Region");
     RegionClassLoader regionClassLoader =
-        new RegionClassLoader("Region", containerClassLoader.getClassLoader(), childClassLoaderLookupPolicy, null);
+        new RegionClassLoader("Region", containerClassLoader.getClassLoader(), childClassLoaderLookupPolicy,
+                              applicationDescriptor);
 
     final List<ArtifactClassLoader> filteredPluginsArtifactClassLoaders = new ArrayList<>();
     final List<ArtifactClassLoader> pluginsArtifactClassLoaders = new ArrayList<>();
@@ -100,10 +104,11 @@ public class IsolatedClassLoaderFactory {
       for (PluginUrlClassification pluginUrlClassification : artifactUrlClassification.getPluginClassificationUrls()) {
         logClassLoaderUrls("PLUGIN (" + pluginUrlClassification.getName() + ")", pluginUrlClassification.getUrls());
 
-        //TODO(pablo.kraan): logging - pass the descriptor here
+        final ArtifactDescriptor pluginDescriptor = new ArtifactDescriptor();
+        pluginDescriptor.setName(pluginUrlClassification.getName());
         MuleArtifactClassLoader pluginCL =
             new MuleArtifactClassLoader(pluginUrlClassification.getName(), pluginUrlClassification.getUrls().toArray(new URL[0]),
-                                        regionClassLoader, childClassLoaderLookupPolicy, null);
+                                        regionClassLoader, childClassLoaderLookupPolicy, pluginDescriptor);
         pluginsArtifactClassLoaders.add(pluginCL);
 
         ArtifactClassLoaderFilter filter = createArtifactClassLoaderFilter(pluginUrlClassification, pluginCL);
@@ -158,11 +163,12 @@ public class IsolatedClassLoaderFactory {
   protected ArtifactClassLoader createContainerArtifactClassLoader(TestContainerClassLoaderFactory testContainerClassLoaderFactory,
                                                                    ArtifactUrlClassification artifactUrlClassification) {
     logClassLoaderUrls("CONTAINER", artifactUrlClassification.getContainerUrls());
-    //TODO(pablo.kraan): logging - pass the descriptor here
+    final ArtifactDescriptor launcherDescriptor = new ArtifactDescriptor();
+    launcherDescriptor.setName("launcher");
     MuleArtifactClassLoader launcherArtifact =
         new MuleArtifactClassLoader("launcher", new URL[0], IsolatedClassLoaderFactory.class.getClassLoader(),
                                     new MuleClassLoaderLookupPolicy(Collections.emptyMap(), Collections.<String>emptySet()),
-                                    null);
+                                    launcherDescriptor);
     final List<MuleModule> muleModules = Collections.<MuleModule>emptyList();
     ClassLoaderFilter filteredClassLoaderLauncher = new ContainerClassLoaderFilterFactory()
         .create(testContainerClassLoaderFactory.getBootPackages(), muleModules);
@@ -218,9 +224,10 @@ public class IsolatedClassLoaderFactory {
                                                                      ClassLoaderLookupPolicy childClassLoaderLookupPolicy,
                                                                      ArtifactUrlClassification artifactUrlClassification) {
     logClassLoaderUrls("APP", artifactUrlClassification.getApplicationUrls());
-    //TODO(pablo.kraan): logging - pass the descriptor here
+    final ArtifactDescriptor applicationDescriptor = new ArtifactDescriptor();
+    applicationDescriptor.setName("app");
     return new MuleArtifactClassLoader("app", artifactUrlClassification.getApplicationUrls().toArray(new URL[0]), parent,
-                                       childClassLoaderLookupPolicy, null);
+                                       childClassLoaderLookupPolicy, applicationDescriptor);
   }
 
   /**
