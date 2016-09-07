@@ -14,6 +14,7 @@ import org.mule.runtime.core.api.config.MuleProperties;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.junit4.rule.SystemProperty;
 
@@ -33,10 +34,9 @@ public class AbstractDomainTestCase extends AbstractMuleTestCase {
   public final SystemProperty muleHomeSystemProperty =
       new SystemProperty(MuleProperties.MULE_HOME_DIRECTORY_PROPERTY, temporaryFolder.getRoot().getCanonicalPath());
   protected final File muleHomeFolder;
-  //TODO(pablo.kraan): logging - erview these tests
   protected final ArtifactClassLoader containerClassLoader =
       new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(),
-                                  new MuleClassLoaderLookupPolicy(emptyMap(), emptySet()), null);
+                                  new MuleClassLoaderLookupPolicy(emptyMap(), emptySet()), new ArtifactDescriptor());
 
   public AbstractDomainTestCase() throws IOException {
     muleHomeFolder = temporaryFolder.getRoot();

@@ -20,6 +20,7 @@ import org.mule.runtime.container.api.MuleFoldersUtil;
 import org.mule.runtime.core.api.config.MuleProperties;
 import org.mule.runtime.core.util.FileUtils;
 import org.mule.runtime.module.artifact.classloader.ClassLoaderLookupPolicy;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
 
@@ -88,12 +89,15 @@ public class MuleApplicationClassLoaderTestCase extends AbstractMuleTestCase {
     FileUtils.stringToFile(new File(domainDir, RESOURCE_JUST_IN_DOMAIN).getAbsolutePath(), "Some text");
 
     // Create app class loader
+    final ArtifactDescriptor domainDescriptor = new ArtifactDescriptor();
+    //domainDescriptor.
     domainCL = new MuleSharedDomainClassLoader(DOMAIN_NAME, Thread.currentThread().getContextClassLoader(),
-                                               mock(ClassLoaderLookupPolicy.class), emptyList(), null);
+                                               mock(ClassLoaderLookupPolicy.class), emptyList(), domainDescriptor);
 
     //TODO(pablo.kraan): logging - review this test
     appCL =
-        new MuleApplicationClassLoader(APP_NAME, domainCL, null, urls, mock(ClassLoaderLookupPolicy.class), emptyList(), null);
+        new MuleApplicationClassLoader(APP_NAME, domainCL, null, urls, mock(ClassLoaderLookupPolicy.class), emptyList(),
+                                       new ArtifactDescriptor());
   }
 
   @After
@@ -115,9 +119,9 @@ public class MuleApplicationClassLoaderTestCase extends AbstractMuleTestCase {
 
     // Ensure app resources are only loaded from classes directory
     assertLoadedFromClassesDir(appCL.findLocalResource(RESOURCE_IN_CLASSES_AND_JAR));
-    assertNotLoaded(appCL.findLocalResource(RESOURCE_JUST_IN_JAR));
     assertLoadedFromClassesDir(appCL.findLocalResource(RESOURCE_JUST_IN_CLASSES));
-    assertLoadedFromDomainDir(appCL.findLocalResource(RESOURCE_JUST_IN_DOMAIN));
+    assertNotLoaded(appCL.findLocalResource(RESOURCE_JUST_IN_JAR));
+    assertNotLoaded(appCL.findLocalResource(RESOURCE_JUST_IN_DOMAIN));
   }
 
   private void assertLoadedFromClassesDir(URL resource) {

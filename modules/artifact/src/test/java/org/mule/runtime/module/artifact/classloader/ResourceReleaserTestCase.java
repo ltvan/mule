@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
 
@@ -93,7 +94,6 @@ public class ResourceReleaserTestCase extends AbstractMuleTestCase {
 
     private ResourceReleaser resourceReleaserInstance;
 
-    //TODO(pablo.kraan): logging - review this constructor
     public TestArtifactClassLoader(ClassLoader parentCl) {
       super("testArtifact", new URL[0], parentCl, new ClassLoaderLookupPolicy() {
 
@@ -106,7 +106,7 @@ public class ResourceReleaserTestCase extends AbstractMuleTestCase {
         public ClassLoaderLookupPolicy extend(Map<String, ClassLoaderLookupStrategy> lookupStrategies) {
           return null;
         }
-      }, null);
+      }, new ArtifactDescriptor());
     }
 
     @Override

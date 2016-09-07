@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 import org.mule.runtime.module.artifact.classloader.ArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleArtifactClassLoader;
 import org.mule.runtime.module.artifact.classloader.MuleClassLoaderLookupPolicy;
+import org.mule.runtime.module.artifact.descriptor.ArtifactDescriptor;
 import org.mule.runtime.module.launcher.plugin.ArtifactPluginDescriptor;
 import org.mule.tck.junit4.AbstractMuleTestCase;
 import org.mule.tck.size.SmallTest;
@@ -36,10 +37,9 @@ public class DefaultArtifactPluginFactoryTestCase extends AbstractMuleTestCase {
     URL[] urls = new URL[] {getClass().getClassLoader().getResource("lib/bar-1.0.jar")};
     when(descriptor.getRuntimeLibs()).thenReturn(urls);
     when(descriptor.getRuntimeClassesDir()).thenReturn(getClass().getClassLoader().getResource("org/foo/"));
-    //TODO(pablo.kraan): logging - review this test
     ArtifactClassLoader parentClassLoader = new MuleArtifactClassLoader("mule", new URL[0], getClass().getClassLoader(),
                                                                         new MuleClassLoaderLookupPolicy(emptyMap(), emptySet()),
-                                                                        null);
+                                                                        new ArtifactDescriptor());
     ArtifactPlugin appPlugin =
         new DefaultArtifactPluginFactory(new ArtifactPluginClassLoaderFactory()).create(descriptor, parentClassLoader);
 
